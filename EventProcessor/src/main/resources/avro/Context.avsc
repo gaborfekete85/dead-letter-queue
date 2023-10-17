@@ -1,0 +1,27 @@
+{
+  "namespace": "com.feketegabor.streaming.avro.model",
+  "type": "record",
+  "name": "Context",
+  "fields": [
+    {
+      "name": "businessRelationshipUid",
+      "type": [
+        "null",
+        {
+          "type": "string",
+          "logicalType": "uuid"
+        }
+      ]
+    },
+    {
+      "name": "partnerUid",
+      "type": [
+        "null",
+        {
+          "type": "string",
+          "logicalType": "uuid"
+        }
+      ]
+    }
+  ]
+}

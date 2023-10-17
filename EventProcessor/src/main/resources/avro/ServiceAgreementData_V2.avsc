@@ -1,0 +1,142 @@
+{
+  "namespace": "com.feketegabor.streaming.avro.model",
+  "doc": "PCO Service Agrement events",
+  "name": "ServiceAgreementDataV2",
+  "type": "record",
+  "fields": [
+    {
+      "name": "Context",
+      "type": "Context"
+    },
+    {
+      "name": "serviceAgreement",
+      "type": [
+        "null",
+        {
+          "name": "ServiceAgreementV2",
+          "type": "record",
+          "fields": [
+            {
+              "name": "serviceAgreementId",
+              "type": {
+                "type": "string",
+                "logicalType": "uuid",
+                "doc": "Unique identifier of the Service Agreement"
+              }
+            },
+            {
+              "name": "serviceAgreementStatus",
+              "type": {
+                "type": "enum",
+                "name": "ServiceAgreementStatusEnum",
+                "symbols": [
+                  "INITIATED",
+                  "READY_FOR_CONFIGURATION",
+                  "IN_CONFIGURATION",
+                  "CONFIGURED",
+                  "READY_FOR_PRE_APPROVAL",
+                  "IN_PRE_APPROVAL",
+                  "PRE_APPROVED",
+                  "PRE_APPROVAL_REJECTED",
+                  "REWORK_NEEDED",
+                  "READY_FOR_DISTRIBUTION",
+                  "PENDING",
+                  "IN_VALIDATION",
+                  "VALIDATION_COMPLETE",
+                  "READY_FOR_SETUP",
+                  "IN_SETUP",
+                  "SETUP_COMPLETE",
+                  "READY_FOR_APPROVAL",
+                  "IN_APPROVAL",
+                  "APPROVED",
+                  "REJECTED",
+                  "CLARIFICATION_NEEDED",
+                  "IN_ACTIVATION",
+                  "ACTIVE",
+                  "WITHDRAWN",
+                  "INACTIVE",
+                  "IN_CLOSING",
+                  "DELETED",
+                  "EXPIRED",
+                  "IN_MODIFICATION"
+                ]
+              }
+            },
+            {
+              "name": "serviceId",
+              "type": {
+                "type": "string",
+                "logicalType": "uuid",
+                "doc": "Unique identifier of the Service Definition"
+              }
+            },
+            {
+              "name": "serviceName",
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            {
+              "name": "isFeeAuthentic",
+              "type": "boolean"
+            },
+            {
+              "name": "isCollateralLoans",
+              "type": "boolean"
+            },
+            {
+              "name": "isAuthPledge",
+              "type": "boolean"
+            },
+            {
+              "name": "agreements",
+              "type": [
+                "null",
+                {
+                  "type": "array",
+                  "items": {
+                    "name": "agreement",
+                    "type": "record",
+                    "fields": [
+                      {
+                        "name": "agreementId",
+                        "type": "string",
+                        "logicalType": "uuid"
+                      },
+                      {
+                        "name": "documentType",
+                        "type": "string"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "doc": "Linked service agreements."
+            }
+          ]
+        }
+      ]
+    },
+    {
+        "name": "modifiedAt",
+        "type": [
+            "null",
+            {
+                "type": "long",
+                "logicalType": "timestamp-millis"
+            }
+        ],
+        "default": null,
+        "doc": "The last modification time. "
+    },
+    {
+      "name": "modifiedBy",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    }
+  ]
+}

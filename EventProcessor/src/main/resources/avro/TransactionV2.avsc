@@ -1,0 +1,24 @@
+{
+  "namespace": "com.feketegabor.streaming.avro.model",
+  "type": "record",
+  "name": "TransactionV2",
+  "fields": [
+    {
+      "name": "transactionId",
+      "type": { "type": "string" }
+    },
+    {
+      "name": "name",
+      "type": [
+        "null",
+        {
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "amount",
+      "type": { "type": "long" }
+    }
+  ]
+}

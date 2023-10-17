@@ -1,0 +1,70 @@
+server:
+  port: 8501
+spring:
+  cloud:
+    stream:
+      bindings:
+#        notification-input-channel:
+#          applicationId: notificationApp
+#          destination: avro-pos-topic
+#        notification-output-channel:
+#          applicationId: notificationOutApp
+#          destination: loyalty-topic
+        sa-input-channel:
+          destination: pcmproser_pcoevents_serviceagreement_v2
+        sa-output-channel:
+          destination: pcmproser_pcoevents_serviceagreement_v2_out
+#        sa-input-channel_dlt:
+#          applicationId: saDltApp
+#          destination: pcmproser_pcoevents_serviceagreement_v2_dlt
+#        err-outbound-channel:
+#          destination: transactionApp-avro-pos-topic
+#        hadoop-input-channel:
+#          destination: avro-pos-topic
+#        hadoop-output-channel:
+#          destination: hadoop-sink-topic
+      kafka:
+        streams:
+          applicationId: mainApplication
+          properties:
+            commit.interval.ms: 1000
+            state.dir: /Users/feketegabor/rocksdb
+          binder:
+            brokers:  localhost:9092
+            serdeError: logAndContinue
+            deserializationExceptionHandler: sendToDlq
+            configuration:
+              commit.interval.ms: 1000
+              schema.registry.url: http://localhost:8081
+          bindings:
+#            notification-input-channel:
+#              consumer:
+#                valueSerde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
+#                dlqName: transactionApp-avro-pos-topic
+#                error-channel-enabled: true
+#            notification-output-channel:
+#              producer:
+#                valueSerde: io.confluent.kafka.streams.serdes.json.KafkaJsonSchemaSerde
+            sa-input-channel:
+              consumer:
+                applicationId: saInputApplication
+                configuration:
+                  group.id: randomGroupswdw
+                valueSerde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
+                dlqName: pcmproser_pcoevents_serviceagreement_v2_dlt
+                error-channel-enabled: true
+            sa-output-channel:
+              producer:
+                applicationId: saOutputApplication
+                valueSerde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
+#            hadoop-input-channel:
+#              consumer:
+#                valueSerde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
+#            hadoop-output-channel:
+#              producer:
+#                valueSerde: io.confluent.kafka.streams.serdes.json.KafkaJsonSchemaSerde
+
+default:
+  deserialization:
+    exception:
+      handler: sendToDlq

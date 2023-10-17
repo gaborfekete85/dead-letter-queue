@@ -1,0 +1,46 @@
+# kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic pcmproser_pcoevents_serviceagreement_v2
+application:
+  configs:
+    simulateError: false
+    topic:
+      serviceAgreement: pcmproser_pcoevents_serviceagreement_v2
+      serviceAgreementDlt: pcmproser_pcoevents_serviceagreement_v2_dlt
+      transaction: transaction_v1
+      transactionV2: transaction_v2
+      transactionV2Dlt: transaction_v2_dlt
+
+spring:
+  datasource:
+    url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/postgres?currentSchema=public}
+    username: ${DATASOURCE_USER:postgres}
+    password: ${DATASOURCE_PASSWORD:postgres}
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+      naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        ddl-auto: none
+        jdbc:
+          lob:
+            non_contextual_creation: true
+
+  kafka:
+    producer:
+      client-id: service-agreement-generator
+      bootstrap-servers: localhost:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      properties:
+        schema.registry.url: http://localhost:8081
+    consumer:
+      client-id: service-agreement-generator
+      group-id: process-service-group
+      bootstrap-servers: localhost:9092
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.streams.serdes.avro.SpecificAvroDeserializer
+      properties:
+        schema.registry.url: http://localhost:8081

@@ -1,0 +1,16 @@
+{
+  "namespace": "com.feketegabor.streaming.avro.model",
+  "type": "record",
+  "name": "Transaction",
+  "fields": [
+    {
+      "name": "value",
+      "type": [
+        "null",
+        {
+          "type": "int"
+        }
+      ]
+    }
+  ]
+}
