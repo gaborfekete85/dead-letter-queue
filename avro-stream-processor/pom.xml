@@ -104,7 +104,8 @@
                                 <import>${project.basedir}/src/main/avro/DeliveryAddress.avsc</import>
                                 <import>${project.basedir}/src/main/avro/Context.avsc</import>
                             </imports>
-                            <stringType>String</stringType>
+<!--                            <stringType>String</stringType>-->
+                            <stringType>CharSequence</stringType>
                             <customConversions>org.apache.avro.Conversions$UUIDConversion</customConversions>
                         </configuration>
                     </execution>

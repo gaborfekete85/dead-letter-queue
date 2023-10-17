@@ -14,8 +14,8 @@ public class RecordBuilder {
 
     public Notification getNotification(PosInvoice invoice){
         return Notification.builder()
-                .InvoiceNumber(invoice.getInvoiceNumber())
-                .CustomerCardNo(invoice.getCustomerCardNo())
+                .InvoiceNumber(invoice.getInvoiceNumber().toString())
+                .CustomerCardNo(invoice.getCustomerCardNo().toString())
                 .TotalAmount(invoice.getTotalAmount())
                 .EarnedLoyaltyPoints(invoice.getTotalAmount() * 0.02)
                 .build();
@@ -33,7 +33,7 @@ public class RecordBuilder {
 
     public PosInvoice getMaskedInvoice(PosInvoice invoice){
         invoice.setCustomerCardNo(null);
-        if (invoice.getDeliveryType().equalsIgnoreCase("HOME-DELIVERY")) {
+        if ("HOME-DELIVERY".equalsIgnoreCase(invoice.getDeliveryType().toString())) {
             invoice.getDeliveryAddress().setAddressLine(null);
             invoice.getDeliveryAddress().setContactNumber(null);
         }
@@ -45,22 +45,22 @@ public class RecordBuilder {
 
         for (LineItem i : invoice.getInvoiceLineItems()) {
             HadoopRecord record = new HadoopRecord();
-            record.setInvoiceNumber(invoice.getInvoiceNumber());
+            record.setInvoiceNumber(invoice.getInvoiceNumber().toString());
             record.setCreatedTime(invoice.getCreatedTime());
-            record.setStoreID(invoice.getStoreID());
-            record.setPosID(invoice.getPosID());
-            record.setCustomerType(invoice.getCustomerType());
-            record.setPaymentMethod(invoice.getPaymentMethod());
-            record.setDeliveryType(invoice.getDeliveryType());
-            record.setItemCode(i.getItemCode());
-            record.setItemDescription(i.getItemDescription());
+            record.setStoreID(invoice.getStoreID().toString());
+            record.setPosID(invoice.getPosID().toString());
+            record.setCustomerType(invoice.getCustomerType().toString());
+            record.setPaymentMethod(invoice.getPaymentMethod().toString());
+            record.setDeliveryType(invoice.getDeliveryType().toString());
+            record.setItemCode(i.getItemCode().toString());
+            record.setItemDescription(i.getItemDescription().toString());
             record.setItemPrice(i.getItemPrice());
             record.setItemQty(i.getItemQty());
             record.setTotalValue(i.getTotalValue());
             if (invoice.getDeliveryType().toString().equalsIgnoreCase("HOME-DELIVERY")) {
-                record.setCity(invoice.getDeliveryAddress().getCity());
-                record.setState(invoice.getDeliveryAddress().getState());
-                record.setPinCode(invoice.getDeliveryAddress().getPinCode());
+                record.setCity(invoice.getDeliveryAddress().getCity().toString());
+                record.setState(invoice.getDeliveryAddress().getState().toString());
+                record.setPinCode(invoice.getDeliveryAddress().getPinCode().toString());
             }
             records.add(record);
         }

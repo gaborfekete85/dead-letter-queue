@@ -21,8 +21,9 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.Map;
 import java.util.UUID;
-
+import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 @Service
 @Log4j2
 @EnableBinding(PosListenerBinding.class)
@@ -42,6 +43,10 @@ public class NotificationProcessorService {
 //                .reduce((a, b) -> b, Materialized.as(SA_STORE)
 //                .withValueSerde(new JsonSerde(ServiceAgreementDataV2.class)))
 //                .toStream();
+        SpecificAvroSerde avroSerde = new SpecificAvroSerde<>();
+        Map<String, ?> serdeConfig = Map.of("schema.registry.url", "http://localhost:8081",
+                "specific.avro.reader", "true");
+        avroSerde.configure(serdeConfig, false); // Configure the Serde with necessary settings
 
         KStream<String, ServiceAgreementDataV2> notificationKStream = input
                 .peek( (k,v) -> log.info("[ CONSUMED ] [ SERVICE_AGREEMENT_V2 ] {}: {}", k, v))
@@ -49,8 +54,14 @@ public class NotificationProcessorService {
                 .groupByKey()
 //                .windowedBy(SlidingWindows.withTimeDifferenceAndGrace(Duration.ofSeconds(1), Duration.ofSeconds(1)))
                 .reduce((a, b) -> b, Materialized.as(SA_STORE)
-                .withValueSerde(new JsonSerde(ServiceAgreementDataV2.class)))
+                .withValueSerde(avroSerde))
+//                .withValueSerde(new AvroSerde(ServiceAgreementDataV2.class)))
                 .toStream();
+
+//        KStream<String, ServiceAgreementDataV2> notificationKStream = input
+//                .peek( (k,v) -> log.info("[ CONSUMED ] [ SERVICE_AGREEMENT_V2 ] {}: {}", k, v))
+//                .mapValues( x -> x );
+
 
 //        input.foreach((k, v) -> {
 //            try {
@@ -84,7 +95,7 @@ public class NotificationProcessorService {
     public KStream<String, Notification> process2(KStream<String, PosInvoice> input) {
         log.info("Event received ... ");
         KStream<String, Notification> notificationKStream = input
-                .filter((k, v) -> v.getCustomerType().equalsIgnoreCase("PRIME"))
+                .filter((k, v) -> "PRIME".equalsIgnoreCase(v.getCustomerType().toString()))
                 .mapValues(v -> recordBuilder.getNotification(v));
 
         notificationKStream.foreach((k, v) -> log.info(String.format("Notification:- Key: %s, Value: %s", k, v)));

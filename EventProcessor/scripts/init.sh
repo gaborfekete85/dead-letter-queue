@@ -1,5 +1,7 @@
 confluent local services start
 
+netsh interface portproxy add v4tov4 listenport=9092 listenaddress=0.0.0.0 connectport=9092 connectaddress=172.23.26.108
+
 kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic pcmproser_pcoevents_serviceagreement_v2
 kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic pcmproser_pcoevents_serviceagreement_v2_out
 kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic pcmproser_pcoevents_serviceagreement_v2_dlt --config cleanup.policy=compact
