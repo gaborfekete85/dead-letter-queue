@@ -4,6 +4,8 @@ import com.feketegabor.streaming.avro.model.ServiceAgreementDataV2;
 import guru.learningjournal.examples.kafka.avroposfanout.bindings.PosListenerBinding;
 import guru.learningjournal.examples.kafka.avroposfanout.model.Notification;
 import guru.learningjournal.examples.kafka.model.PosInvoice;
+import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.KStream;
@@ -13,6 +15,7 @@ import org.apache.kafka.streams.kstream.Windows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.annotation.StreamListener;
+import org.springframework.cloud.stream.binder.kafka.streams.InteractiveQueryService;
 import org.springframework.kafka.annotation.DltHandler;
 import org.springframework.kafka.annotation.RetryableTopic;
 import org.springframework.kafka.support.serializer.JsonSerde;
@@ -21,17 +24,18 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
 @Log4j2
 @EnableBinding(PosListenerBinding.class)
+@RequiredArgsConstructor
 public class NotificationProcessorService {
 
-    @Autowired
-    RecordBuilder recordBuilder;
-
-    private static final String SA_STORE = "saStore";
+    private final RecordBuilder recordBuilder;
+    private final InteractiveQueryService interactiveQueryService;
+    public static final String SA_STORE = "saStore";
 
     @StreamListener("sa-input-channel")
     @SendTo("sa-output-channel")
@@ -43,13 +47,19 @@ public class NotificationProcessorService {
 //                .withValueSerde(new JsonSerde(ServiceAgreementDataV2.class)))
 //                .toStream();
 
+        SpecificAvroSerde avroSerde = new SpecificAvroSerde<>();
+
+        Map<String, ?> serdeConfig = Map.of("schema.registry.url", "http://localhost:8081",
+                "specific.avro.reader", "true");
+        avroSerde.configure(serdeConfig, false); // Configure the Serde with necessary settings
+
         KStream<String, ServiceAgreementDataV2> notificationKStream = input
                 .peek( (k,v) -> log.info("[ CONSUMED ] [ SERVICE_AGREEMENT_V2 ] {}: {}", k, v))
                 .mapValues( x -> x )
                 .groupByKey()
 //                .windowedBy(SlidingWindows.withTimeDifferenceAndGrace(Duration.ofSeconds(1), Duration.ofSeconds(1)))
                 .reduce((a, b) -> b, Materialized.as(SA_STORE)
-                .withValueSerde(new JsonSerde(ServiceAgreementDataV2.class)))
+                .withValueSerde(avroSerde))
                 .toStream();
 
 //        input.foreach((k, v) -> {
@@ -84,7 +94,7 @@ public class NotificationProcessorService {
     public KStream<String, Notification> process2(KStream<String, PosInvoice> input) {
         log.info("Event received ... ");
         KStream<String, Notification> notificationKStream = input
-                .filter((k, v) -> v.getCustomerType().equalsIgnoreCase("PRIME"))
+                .filter((k, v) -> "PRIME".equalsIgnoreCase(v.getCustomerType().toString()))
                 .mapValues(v -> recordBuilder.getNotification(v));
 
         notificationKStream.foreach((k, v) -> log.info(String.format("Notification:- Key: %s, Value: %s", k, v)));

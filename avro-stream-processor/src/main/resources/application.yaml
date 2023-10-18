@@ -1,5 +1,5 @@
 server:
-  port: 8501
+  port: 8756
 spring:
   cloud:
     stream:
@@ -25,7 +25,7 @@ spring:
 #          destination: hadoop-sink-topic
       kafka:
         streams:
-          applicationId: mainApplication
+          applicationId: mainApplication3
           properties:
             commit.interval.ms: 1000
             state.dir: /Users/feketegabor/rocksdb
@@ -47,7 +47,7 @@ spring:
 #                valueSerde: io.confluent.kafka.streams.serdes.json.KafkaJsonSchemaSerde
             sa-input-channel:
               consumer:
-                applicationId: saInputApplication
+                applicationId: saInputApplication3
                 configuration:
                   group.id: randomGroupswdw
                 valueSerde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
