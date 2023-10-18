@@ -8,9 +8,11 @@ import guru.learningjournal.examples.kafka.model.PosInvoice;
 import org.apache.kafka.streams.kstream.KStream;
 import org.springframework.cloud.stream.annotation.Input;
 import org.springframework.cloud.stream.annotation.Output;
+import org.springframework.context.annotation.Configuration;
 
 import java.util.UUID;
 
+@Configuration
 public interface PosListenerBinding {
 
 //    @Input("notification-input-channel")

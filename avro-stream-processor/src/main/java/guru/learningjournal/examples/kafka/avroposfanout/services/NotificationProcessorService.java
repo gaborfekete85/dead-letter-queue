@@ -32,7 +32,7 @@ public class NotificationProcessorService {
     @Autowired
     RecordBuilder recordBuilder;
 
-    private static final String SA_STORE = "saStore";
+    public static final String SA_STORE = "saStore";
 
     @StreamListener("sa-input-channel")
     @SendTo("sa-output-channel")
