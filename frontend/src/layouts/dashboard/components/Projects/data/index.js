@@ -61,7 +61,7 @@ export default function data() {
         response = response.concat({
           eventType: <>{shortenEventType(dlt.eventType)}</>,
           topic: <>{dlt.topic + "(P:  " + dlt.partition + ", O:" + dlt.partitionOffset + ")"}</>,
-          budget: <>{dlt.dataAsJson}</>,
+          dataAsJson: <>{dlt.dataAsJson}</>,
           createdAt: <>{dlt.createdAt}</>,
         });
       });
@@ -236,7 +236,7 @@ export default function data() {
     columns: [
       { Header: "Event Type", accessor: "eventType", width: "45%", align: "left" },
       { Header: "Topic", accessor: "topic", width: "10%", align: "left" },
-      { Header: "budget", accessor: "budget", align: "center" },
+      { Header: "Json", accessor: "dataAsJson", align: "center" },
       { Header: "Created at", accessor: "createdAt", align: "center" },
     ],
 

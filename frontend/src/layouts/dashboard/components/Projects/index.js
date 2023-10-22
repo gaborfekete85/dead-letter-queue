@@ -43,6 +43,13 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
+import {useDispatch, useSelector} from "react-redux";
+// import Table from '@mui/material/Table';
+// import TableHead from '@mui/material/TableHead';
+// import TableRow from '@mui/material/TableRow';
+// import TableCell from '@mui/material/TableCell';
+// import TableBody from '@mui/material/TableBody';
+
 // import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 // import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 // import Accordion from "@mui/material/Accordion";
@@ -52,6 +59,7 @@ import Paper from "@mui/material/Paper";
 
 function Projects() {
   const { columns, rows } = data();
+  const deadLetters = useSelector(state => state.deadLetters.list)
   // const [expanded, setExpanded] = React.useState(false);
 
   // const handleChange = (panel) => (event, isExpanded) => {
@@ -94,6 +102,25 @@ function Projects() {
 
   const openMenu = ({ currentTarget }) => setMenu(currentTarget);
   const closeMenu = () => setMenu(null);
+  
+  const [loaded, setLoaded] = useState("loading");
+
+  const shortenEventType = (eventType) => {
+    let splittedStr = eventType.split(".");
+    return splittedStr[splittedStr.length - 1];
+  };
+  // useEffect(() => {
+  //   alert("DeadLetters changed 2");
+  //   alert(JSON.stringify(deadLetters));
+  // }, [deadLetters]);
+
+  useEffect(() => {
+    if(deadLetters !== undefined) {
+      // alert("DeadLetters changed 1");
+      // alert(JSON.stringify(deadLetters));
+      setLoaded("loaded");
+    }
+  }, [deadLetters]);
 
   const renderMenu = (
     <Menu
@@ -145,15 +172,44 @@ function Projects() {
         </MDBox>
         {renderMenu}
       </MDBox>
-      <MDBox>
-        <DataTable
-          table={{ columns, rows }}
-          showTotalEntries={false}
-          isSorted={false}
-          noEndBorder
-          entriesPerPage={false}
-        />
-      </MDBox>
+      <TableContainer style={{ width: '100%' }}>
+        {loaded === "loading" ? (
+          <p>Loading ... </p>
+        ) : (
+          <Table style={{ width: '100%' }}>
+          {/* <TableHead style={{ width: '100%' }}>
+            <TableRow style={{ width: '100%' }}>
+              <TableCell>Column 1</TableCell>
+              <TableCell>Column 2</TableCell>
+              <TableCell>Column 3</TableCell>
+            </TableRow>
+          </TableHead> */}
+          <TableBody>
+            <TableRow>
+              <TableCell><strong>Event Type</strong></TableCell>
+              <TableCell><strong>Topic</strong></TableCell>
+              <TableCell><strong>Created At</strong></TableCell>
+            </TableRow>
+            {deadLetters.map((item, index) => (
+              <>
+              <TableRow key={index}>
+                <TableCell>{shortenEventType(item.eventType)}</TableCell>
+                <TableCell>{item.topic + "(P:  " + item.partition + ", O:" + item.partitionOffset + ")"}</TableCell>
+                <TableCell>{item.createdAt}</TableCell>
+                {/* <TableCell>{shortenEventType(item.eventType)}</TableCell> */}
+              </TableRow>
+              <TableRow>
+                  <TableCell colSpan={3}><pre>{item.reason.substring(0, 100)} ... </pre></TableCell>
+              </TableRow>
+              <TableRow>
+                  <TableCell colSpan={3}><pre>{JSON.stringify(JSON.parse(item.dataAsJson), null, 2).substring(0, 200)} ... </pre></TableCell>
+              </TableRow>
+              </>
+            ))}
+          </TableBody>
+        </Table>
+        )}
+      </TableContainer>
     </Card>
   );
 }
