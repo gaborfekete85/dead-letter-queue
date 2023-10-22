@@ -57,8 +57,11 @@ import {useDispatch, useSelector} from "react-redux";
 // import AccordionSummary from "@mui/material/AccordionSummary";
 // import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
+import {queryDlt} from "store/actions";
+
 function Projects() {
   const { columns, rows } = data();
+  const dispatch = useDispatch();
   const deadLetters = useSelector(state => state.deadLetters.list)
   // const [expanded, setExpanded] = React.useState(false);
 
@@ -106,13 +109,18 @@ function Projects() {
   const [loaded, setLoaded] = useState("loading");
 
   const shortenEventType = (eventType) => {
+    if(!eventType) {
+      return "";
+    }
+
     let splittedStr = eventType.split(".");
     return splittedStr[splittedStr.length - 1];
   };
-  // useEffect(() => {
-  //   alert("DeadLetters changed 2");
-  //   alert(JSON.stringify(deadLetters));
-  // }, [deadLetters]);
+  useEffect(() => {
+    axios.get("/dlt/api/dlt").then((res) => {
+      dispatch(queryDlt(res.data))
+    });
+  }, []);
 
   useEffect(() => {
     if(deadLetters !== undefined) {
@@ -148,7 +156,7 @@ function Projects() {
       <MDBox display="flex" justifyContent="space-between" alignItems="center" p={3}>
         <MDBox>
           <MDTypography variant="h6" gutterBottom>
-            Projects
+            Failed Events
           </MDTypography>
           <MDBox display="flex" alignItems="center" lineHeight={0}>
             <Icon
@@ -192,9 +200,9 @@ function Projects() {
             </TableRow>
             {deadLetters.map((item, index) => (
               <>
-              <TableRow key={index}>
+              <TableRow style={{ borderTop: "2px solid #33b864" }} key={index}>
                 <TableCell>{shortenEventType(item.eventType)}</TableCell>
-                <TableCell>{item.topic + "(P:  " + item.partition + ", O:" + item.partitionOffset + ")"}</TableCell>
+                <TableCell>{item.topic + " - Partition:  " + item.partition + ", Offset:" + item.partitionOffset}</TableCell>
                 <TableCell>{item.createdAt}</TableCell>
                 {/* <TableCell>{shortenEventType(item.eventType)}</TableCell> */}
               </TableRow>
