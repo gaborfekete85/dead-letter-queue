@@ -13,7 +13,7 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // @mui material components
 import Card from "@mui/material/Card";
@@ -30,9 +30,66 @@ import DataTable from "examples/Tables/DataTable";
 
 // Data
 import data from "layouts/dashboard/components/Projects/data";
+import axios from "axios";
+
+import Box from "@mui/material/Box";
+import Collapse from "@mui/material/Collapse";
+import IconButton from "@mui/material/IconButton";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Typography from "@mui/material/Typography";
+import Paper from "@mui/material/Paper";
+// import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+// import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+// import Accordion from "@mui/material/Accordion";
+// import AccordionDetails from "@mui/material/AccordionDetails";
+// import AccordionSummary from "@mui/material/AccordionSummary";
+// import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 function Projects() {
   const { columns, rows } = data();
+  // const [expanded, setExpanded] = React.useState(false);
+
+  // const handleChange = (panel) => (event, isExpanded) => {
+  //   setExpanded(isExpanded ? panel : false);
+  // };
+
+  // useEffect(() => {
+  //   alert("Start HTTP GET request ... ");
+  //   axios.get("http://localhost:8300/dlt/api/dlt").then((res) => {
+  //     // alert("Response: " + JSON.stringify(res.data));
+  //     res.data.forEach((dlt) => {
+  //       let dltObj = {
+  //         companies: <Company image={logoXD} name={dlt.dltKey} />,
+  //         members: (
+  //           <MDBox display="flex" py={1}>
+  //             {avatars([
+  //               [team1, "Ryan Tompson"],
+  //               [team2, "Romina Hadid"],
+  //               [team3, "Alexander Smith"],
+  //               [team4, "Jessica Doe"],
+  //             ])}
+  //           </MDBox>
+  //         ),
+  //         budget: (
+  //           <MDTypography variant="caption" color="text" fontWeight="medium">
+  //             $14,000
+  //           </MDTypography>
+  //         ),
+  //         completion: (
+  //           <MDBox width="8rem" textAlign="left">
+  //             <MDProgress value={60} color="info" variant="gradient" label={false} />
+  //           </MDBox>
+  //         ),
+  //       };
+  //       alert(JSON.stringify(dltObj))
+  //     })
+  //   });
+  // }, []);
   const [menu, setMenu] = useState(null);
 
   const openMenu = ({ currentTarget }) => setMenu(currentTarget);
