@@ -1,9 +1,6 @@
 package com.feketegabor.streaming.EventProcessor.controller;
 
-import com.feketegabor.streaming.EventProcessor.controller.model.DeadLetterEvent;
-import com.feketegabor.streaming.EventProcessor.controller.model.GenerationRequestDto;
-import com.feketegabor.streaming.EventProcessor.controller.model.ServiceAgreementDTO;
-import com.feketegabor.streaming.EventProcessor.controller.model.TransactionDTO;
+import com.feketegabor.streaming.EventProcessor.controller.model.*;
 import com.feketegabor.streaming.EventProcessor.listener.DeadLetterHandler;
 import com.feketegabor.streaming.EventProcessor.listener.ServiceAgreementEventHandler;
 import com.feketegabor.streaming.EventProcessor.listener.TransactionEventHandler;
@@ -11,6 +8,7 @@ import com.feketegabor.streaming.EventProcessor.repository.model.DeadLetterEntit
 import com.feketegabor.streaming.EventProcessor.services.KafkaProducerService;
 import com.feketegabor.streaming.EventProcessor.services.datagenerator.ServiceAgreementGenerator;
 import com.feketegabor.streaming.EventProcessor.util.Kafkautil;
+import com.feketegabor.streaming.avro.model.DeadLetter;
 import com.feketegabor.streaming.avro.model.ServiceAgreementDataV2;
 import com.feketegabor.streaming.avro.model.Transaction;
 import com.feketegabor.streaming.avro.model.TransactionV2;
@@ -86,8 +84,14 @@ public class KafkaProducerController {
     }
 
     @GetMapping(value = "/v2/dead-letters/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<DeadLetterEntity> getDeadLettersAsStream() {
-        return deadLetterHandler.getEvents();
+    public Flux<DeadLetter> getDeadLettersAsStream() {
+        return deadLetterHandler.getEvents().log();
+    }
+
+    @PostMapping(value ="/kafka/tombstone", produces = "application/json")
+    public ResponseEntity<String> tombstoneEvent(@RequestBody TombstoneRequest tombstoneRequest) {
+        kafkaProducerService.tombstoneEvent(tombstoneRequest.getDltTopicEventKey(), saDltTopic + "_avro");
+        return ResponseEntity.ok(String.format("%s event tombstoned. ", tombstoneRequest.getDltTopicEventKey()));
     }
 
     @GetMapping(value = "/v2/dead-letters/sa", produces = MediaType.APPLICATION_JSON_VALUE)

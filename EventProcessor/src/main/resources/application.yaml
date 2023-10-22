@@ -3,7 +3,7 @@ server:
 # kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic pcmproser_pcoevents_serviceagreement_v2
 application:
   configs:
-    simulateError: false
+    simulateError: true
     topic:
       serviceAgreement: pcmproser_pcoevents_serviceagreement_v2
       serviceAgreementDlt: pcmproser_pcoevents_serviceagreement_v2_dlt

@@ -4,6 +4,7 @@ import com.feketegabor.streaming.EventProcessor.repository.TransactionDltReposit
 import com.feketegabor.streaming.EventProcessor.repository.model.DeadLetterEntity;
 import com.feketegabor.streaming.EventProcessor.services.KafkaProducerService;
 import com.feketegabor.streaming.EventProcessor.util.Kafkautil;
+import com.feketegabor.streaming.avro.model.DeadLetter;
 import com.feketegabor.streaming.avro.model.ServiceAgreementDataV2;
 import com.feketegabor.streaming.avro.model.Transaction;
 import com.feketegabor.streaming.avro.model.TransactionV2;
@@ -14,7 +15,6 @@ import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Header;
-import org.apache.kafka.streams.kstream.KStream;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,8 +32,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.ZoneOffset;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 @Component
 @Configuration
@@ -42,6 +42,9 @@ public class ServiceAgreementListener {
 
     @Autowired
     ConsumerFactory consumerFactory;
+
+    @Value("${application.configs.topic.serviceAgreement}")
+    private String saTopic;
 
     @Value("${application.configs.topic.serviceAgreementDlt}")
     private String dltTopic;
@@ -71,7 +74,8 @@ public class ServiceAgreementListener {
     public void serviceAgreementReceived(ConsumerRecord<String, ServiceAgreementDataV2> event) {
         try {
             String key = event.key();
-            if(simulateError && Character.isDigit(key.toString().charAt(0))) {
+//             && Character.isDigit(key.toString().charAt(0))
+            if(simulateError) {
                 throw new RuntimeException("Key Starts with Digit");
             } else {
                 log.info("[ CONSUMED ] Service Agreement received on topic {}, Partition: {}, Offset: {}, Event: {}", event.topic(), event.partition(), event.offset(), event.value());
@@ -89,7 +93,15 @@ public class ServiceAgreementListener {
         } catch (Throwable t) {
             log.error("ERR_PCO_2001: [ KAFKA ] Unexpected error during consuming the event.", t);
             event.headers().add(Kafkautil.DLT_TOPIC_NAME_HEADER, dltTopic.getBytes());
+            event.headers().add(Kafkautil.DLT_ORIGINAL_EVENT_KEY, event.key().getBytes());
+            event.headers().add(Kafkautil.DLT_ORIGINAL_EVENT_TYPE, event.value().getClass().getName().getBytes());
+            event.headers().add(Kafkautil.DLT_ORIGINAL_TOPIC, saTopic.getBytes());
+            event.headers().add(Kafkautil.DLT_ORIGINAL_PARTITION, String.valueOf(event.partition()).getBytes());
+            event.headers().add(Kafkautil.DLT_ORIGINAL_OFFSET, String.valueOf(event.offset()).getBytes());
             event.headers().add(Kafkautil.DLT_REASON, (t.getMessage() + ": \n" + ExceptionUtils.getStackTrace(t)).getBytes());
+
+//            event.headers().add(Kafkautil.DLT_TOPIC_NAME_HEADER, dltTopic.getBytes());
+//            event.headers().add(Kafkautil.DLT_REASON, (t.getMessage() + ": \n" + ExceptionUtils.getStackTrace(t)).getBytes());
             throw t;
         }
     }
@@ -115,6 +127,11 @@ public class ServiceAgreementListener {
         } catch (Throwable t) {
             log.error("ERR_PCO_2001: [ KAFKA ] Unexpected error during consuming the event.", t);
             event.headers().add(Kafkautil.DLT_TOPIC_NAME_HEADER, TRANASCTION_V2_DLT.getBytes());
+            event.headers().add(Kafkautil.DLT_ORIGINAL_EVENT_KEY, event.key().getBytes());
+            event.headers().add(Kafkautil.DLT_ORIGINAL_EVENT_TYPE, event.value().getClass().getName().getBytes());
+            event.headers().add(Kafkautil.DLT_ORIGINAL_TOPIC, saTopic.getBytes());
+            event.headers().add(Kafkautil.DLT_ORIGINAL_PARTITION, String.valueOf(event.partition()).getBytes());
+            event.headers().add(Kafkautil.DLT_ORIGINAL_OFFSET, String.valueOf(event.offset()).getBytes());
             event.headers().add(Kafkautil.DLT_REASON, (t.getMessage() + ": \n" + ExceptionUtils.getStackTrace(t)).getBytes());
             throw t;
         }
@@ -131,11 +148,26 @@ public class ServiceAgreementListener {
             String serialized = new String(avroBytes, StandardCharsets.UTF_8);
             ServiceAgreementDataV2 sa = Kafkautil.deserializeAvro(avroBytes, event.value().getSchema(), ServiceAgreementDataV2.class);
             DeadLetterEntity dle = persistDlt(event, event.value().getSchema(), ServiceAgreementDataV2.class);
-            deadLetterHandler.handle(dle);
+            deadLetterHandler.handle(this.mapToAvro(dle));
+//            deadLetterHandler.handle(dle);
         } catch (Throwable t) {
             log.error("ERR_PCO_2001: [ KAFKA ] Unexpected error during consuming the event.", t);
             event.headers().add(Kafkautil.DLT_TOPIC_NAME_HEADER, TRANASCTION_V2_DLT.getBytes());
         }
+    }
+
+    public DeadLetter mapToAvro(DeadLetterEntity deadLetterEntity) {
+        return DeadLetter.newBuilder()
+                .setEventKey(deadLetterEntity.getEventKey().toString())
+                .setEventType(deadLetterEntity.getEventType())
+                .setTopic(deadLetterEntity.getTopic())
+                .setPartition(String.valueOf(deadLetterEntity.getPartition()))
+                .setOffset(String.valueOf(deadLetterEntity.getPartitionOffset()))
+                .setJson(deadLetterEntity.getDataAsJson())
+                .setAvro(deadLetterEntity.getDataAsAvro())
+                .setReason(deadLetterEntity.getReason())
+                .setCreatedAt(Objects.isNull(deadLetterEntity.getCreatedAt()) ? "" : deadLetterEntity.getCreatedAt().toInstant(ZoneOffset.UTC).toString())
+                .build();
     }
 
     private <T> DeadLetterEntity persistDlt(ConsumerRecord<String, T> event, org.apache.avro.Schema schema, Class<T> cls) {
@@ -288,26 +320,38 @@ public class ServiceAgreementListener {
 //            }
 //        });
 
+//        event.headers().add(Kafkautil.DLT_TOPIC_NAME_HEADER, TRANASCTION_V2_DLT.getBytes());
+//        event.headers().add(Kafkautil.DLT_ORIGINAL_EVENT_KEY, event.key().getBytes());
+//        event.headers().add(Kafkautil.DLT_ORIGINAL_EVENT_TYPE, event.value().getClass().getName().getBytes());
+//        event.headers().add(Kafkautil.DLT_ORIGINAL_TOPIC, saTopic.getBytes());
+//        event.headers().add(Kafkautil.DLT_ORIGINAL_PARTITION, String.valueOf(event.partition()).getBytes());
+//        event.headers().add(Kafkautil.DLT_ORIGINAL_OFFSET, String.valueOf(event.offset()).getBytes());
+//        event.headers().add(Kafkautil.DLT_REASON, (t.getMessage() + ": \n" + ExceptionUtils.getStackTrace(t)).getBytes());
+
+
         configurer.configure(factory, kafkaConsumerFactory.getIfAvailable());
-        factory.setErrorHandler(((exception, data) -> {
-            log.error("Error in process with Exception {} and the record is {}", exception, data);
-            String dltTopicTo = getDltTopicName(data);
+        factory.setErrorHandler(((exception, event) -> {
+            log.error("Error in process with Exception {} and the record is {}", exception, event);
+            String dltTopicTo = getDltTopicName(event);
             Map<String, String> headers = Map.of(
-                    Kafkautil.DLT_REASON, getDltException(data),
-                    Kafkautil.DLT_ORIGINAL_TOPIC, data.topic(),
-                    Kafkautil.DLT_ORIGINAL_PARTITION, String.valueOf(data.partition()),
-                    Kafkautil.DLT_ORIGINAL_OFFSET, String.valueOf(data.offset())
-                    );
+                    Kafkautil.DLT_ORIGINAL_EVENT_KEY, event.key().toString(),
+                    Kafkautil.DLT_ORIGINAL_EVENT_TYPE, event.getClass().getName(),
+                    Kafkautil.DLT_ORIGINAL_TOPIC, event.topic(),
+                    Kafkautil.DLT_ORIGINAL_PARTITION, String.valueOf(event.partition()),
+                    Kafkautil.DLT_ORIGINAL_OFFSET, String.valueOf(event.offset()),
+                    Kafkautil.DLT_REASON, getDltException(event)
+            );
             if(Objects.isNull(dltTopicTo)) {
-                log.warn("[ ERROR PRODUCE ] Unable to send event to dead letter queue as topic could not be identified. Event: {}", data.key());
+                log.warn("[ ERROR PRODUCE ] Unable to send event to dead letter queue as topic could not be identified. Event: {}", event.key());
                 return;
             }
             // Direct to Dead Letter Queue
-            if(data.value() instanceof ServiceAgreementDataV2) {
-                kafkaProducerService.produceServiceAgreementV2((ServiceAgreementDataV2) data.value(), dltTopicTo, headers);
+            if(event.value() instanceof ServiceAgreementDataV2) {
+                kafkaProducerService.produceDeadLetterBySa((ServiceAgreementDataV2) event.value(), dltTopicTo + "_avro", headers);
+//                kafkaProducerService.produceServiceAgreementV2((ServiceAgreementDataV2) event.value(), dltTopicTo, headers);
             }
-            if(data.value() instanceof TransactionV2) {
-                kafkaProducerService.sendTransactionV2((TransactionV2) data.value(), dltTopicTo, headers);
+            if(event.value() instanceof TransactionV2) {
+                kafkaProducerService.sendTransactionV2((TransactionV2) event.value(), dltTopicTo, headers);
             }
         }));
 

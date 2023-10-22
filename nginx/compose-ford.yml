@@ -1,0 +1,12 @@
+version: '3'
+services:
+  nginx: 
+    image: nginx:latest
+    container_name: production_nginx
+    volumes:
+      - ./conf/ford.conf:/etc/nginx/nginx.conf
+      - ./conf/nginx-selfsigned.pem:/etc/nginx/nginx-selfsigned.pem
+      - ./conf/nginx-selfsigned.key:/etc/nginx/nginx-selfsigned.key
+      - ./conf/nginx-selfsigned.crt:/etc/nginx/nginx-selfsigned.crt
+    ports:
+      - 8300:8300

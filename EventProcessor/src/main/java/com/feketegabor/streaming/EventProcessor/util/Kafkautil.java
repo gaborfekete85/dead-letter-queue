@@ -17,6 +17,8 @@ import java.util.UUID;
 public class Kafkautil {
     public static final String DLT_TOPIC_NAME_HEADER = "dltTopicName";
     public static final String DLT_REASON = "REASON";
+    public static final String DLT_ORIGINAL_EVENT_KEY = "ORIGINAL_EVENT_KEY";
+    public static final String DLT_ORIGINAL_EVENT_TYPE = "ORIGINAL_EVENT_TYPE";
     public static final String DLT_ORIGINAL_TOPIC = "ORIGINAL_TOPIC";
     public static final String DLT_ORIGINAL_PARTITION = "ORIGINAL_PARTITION";
     public static final String DLT_ORIGINAL_OFFSET = "ORIGINAL_OFFSET";
@@ -33,7 +35,7 @@ public class Kafkautil {
         return kafkaConsumer;
     }
 
-    public static <T> byte[] serializeAvro(ConsumerRecord<?, T> event, org.apache.avro.Schema schema) {
+    public static <T> byte[] serializeAvro(T event, org.apache.avro.Schema schema) {
         try {
             DatumWriter<T> writer = new SpecificDatumWriter<>(schema);
 
@@ -45,7 +47,7 @@ public class Kafkautil {
 
             // 5. Use the SpecificDatumWriter to serialize your Avro object into the ByteArrayOutputStream
 
-            writer.write(event.value(), encoder);
+            writer.write(event, encoder);
             encoder.flush();
 
             // Now, your Avro object is serialized in memory, and you can access the serialized data as a byte array
@@ -54,6 +56,10 @@ public class Kafkautil {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static <T> byte[] serializeAvro(ConsumerRecord<?, T> event, org.apache.avro.Schema schema) {
+        return serializeAvro(event.value(), schema);
     }
 
     public static <T> T deserializeAvro(byte[] data, org.apache.avro.Schema schema, Class<T> cls) throws IOException {

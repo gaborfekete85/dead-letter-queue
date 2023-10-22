@@ -11,9 +11,13 @@ spring:
 #          applicationId: notificationOutApp
 #          destination: loyalty-topic
         sa-input-channel:
-          destination: pcmproser_pcoevents_serviceagreement_v2
+          destination: pcmproser_pcoevents_serviceagreement_v2_dlt
         sa-output-channel:
           destination: pcmproser_pcoevents_serviceagreement_v2_out
+        dlt-input-channel:
+          destination: pcmproser_pcoevents_serviceagreement_v2_dlt_avro
+        dlt-output-channel:
+          destination: pcmproser_pcoevents_serviceagreement_v2_dlt_avro_out
 #        sa-input-channel_dlt:
 #          applicationId: saDltApp
 #          destination: pcmproser_pcoevents_serviceagreement_v2_dlt
@@ -25,7 +29,7 @@ spring:
 #          destination: hadoop-sink-topic
       kafka:
         streams:
-          applicationId: mainApplication3
+          applicationId: mainApplication5
           properties:
             commit.interval.ms: 1000
             state.dir: /Users/feketegabor/rocksdb
@@ -34,6 +38,8 @@ spring:
             serdeError: logAndContinue
             deserializationExceptionHandler: sendToDlq
             configuration:
+              default:
+                key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
               commit.interval.ms: 1000
               schema.registry.url: http://localhost:8081
           bindings:
@@ -47,7 +53,8 @@ spring:
 #                valueSerde: io.confluent.kafka.streams.serdes.json.KafkaJsonSchemaSerde
             sa-input-channel:
               consumer:
-                applicationId: saInputApplication3
+                materializedAs: sa-input-store
+                applicationId: saInputApplication5
                 configuration:
                   group.id: randomGroupswdw
                 valueSerde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
@@ -56,6 +63,16 @@ spring:
             sa-output-channel:
               producer:
                 applicationId: saOutputApplication
+                valueSerde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
+            dlt-input-channel:
+              consumer:
+                materializedAs: dlt-input-store
+                applicationId: saDltAvroInputApplication1
+                configuration:
+                  group.id: randomGroup123
+                valueSerde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
+            dlt-output-channel:
+              producer:
                 valueSerde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
 #            hadoop-input-channel:
 #              consumer:

@@ -1,8 +1,11 @@
 confluent local services start
+# --config cleanup.policy=compact
 
 kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic pcmproser_pcoevents_serviceagreement_v2
 kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic pcmproser_pcoevents_serviceagreement_v2_out
-kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic pcmproser_pcoevents_serviceagreement_v2_dlt --config cleanup.policy=compact
+kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic pcmproser_pcoevents_serviceagreement_v2_dlt
+kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic pcmproser_pcoevents_serviceagreement_v2_dlt_avro
+kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic pcmproser_pcoevents_serviceagreement_v2_dlt_avro_out
 
 kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic transaction_v1
 kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic transaction_v2
@@ -10,6 +13,8 @@ kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 -
 
 ### Listening on the topic:
 kafka-console-consumer --topic pcmproser_pcoevents_serviceagreement_v2_dlt --bootstrap-server localhost:9092 --from-beginning --property print.key=true --property key.separator=":"
+kafka-console-consumer --topic pcmproser_pcoevents_serviceagreement_v2_dlt_avro --bootstrap-server localhost:9092 --from-beginning --property print.key=true --property key.separator=":"
+kafka-console-consumer --topic pcmproser_pcoevents_serviceagreement_v2_dlt_avro_out --bootstrap-server localhost:9092 --from-beginning --property print.key=true --property key.separator=":"
 
 kafka-console-producer --topic FOO_02 --broker-list localhost:9092
 

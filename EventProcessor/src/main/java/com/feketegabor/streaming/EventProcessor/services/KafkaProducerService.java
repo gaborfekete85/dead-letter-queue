@@ -1,10 +1,12 @@
 package com.feketegabor.streaming.EventProcessor.services;
 
 
+import com.feketegabor.streaming.avro.model.DeadLetter;
 import com.feketegabor.streaming.avro.model.ServiceAgreementDataV2;
 import com.feketegabor.streaming.avro.model.Transaction;
 import com.feketegabor.streaming.avro.model.TransactionV2;
 import lombok.extern.log4j.Log4j2;
+import mapper.DeadLetterEntityMapper;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.header.internals.RecordHeaders;
@@ -35,6 +37,9 @@ public class KafkaProducerService {
 
     @Autowired
     private KafkaTemplate<String, ServiceAgreementDataV2> serviceAgreementV2Template;
+
+    @Autowired
+    private KafkaTemplate<String, DeadLetter> deadLetterTemplate;
 
     @Autowired
     private KafkaTemplate<String, Transaction> transactionTemplate;
@@ -89,6 +94,54 @@ public class KafkaProducerService {
         produceServiceAgreementV2(serviceAgreementDataV2, SERVICE_AGRREMENT_TOPIC_NAME);
     }
 
+    public void tombstoneEvent(String key, String topic) {
+        ProducerRecord<String, DeadLetter> producerRecord = new ProducerRecord<>(topic, null, key, null, new RecordHeaders());
+        ListenableFuture<SendResult<String, DeadLetter>> future = deadLetterTemplate.send(producerRecord);
+        if (Objects.nonNull(future)) {
+            future.addCallback(new ListenableFutureCallback<SendResult<String, DeadLetter>>() {
+                @Override
+                public void onSuccess(SendResult<String, DeadLetter> result) {
+                    log.info(String.format("[ PRODUCED ] [ DEAD_LETTER ] Topic: %s, Partition: %s, Offset: %s, Key: %s, Value: %s", topic, result.getRecordMetadata().partition(), result.getRecordMetadata().offset(), result.getProducerRecord().key(), result.getProducerRecord().value()));
+                }
+                @Override
+                public void onFailure(Throwable ex) {
+                    throw new RuntimeException("Event sending failed !");
+                }
+            });
+        }
+    }
+
+    public void produceDeadLetter(DeadLetter deadLetter, String topic, Map<String, String> eventHeaders) {
+
+        RecordHeaders headers = new RecordHeaders();
+        eventHeaders.forEach( (k,v) -> {
+            headers.add(new RecordHeader(k, v.getBytes()));
+        });
+        ProducerRecord<String, DeadLetter> producerRecord = new ProducerRecord<>(topic, null, UUID.randomUUID().toString(), deadLetter, headers);
+        ListenableFuture<SendResult<String, DeadLetter>> future = deadLetterTemplate.send(producerRecord);
+
+        if (Objects.nonNull(future)) {
+            future.addCallback(new ListenableFutureCallback<SendResult<String, DeadLetter>>() {
+                @Override
+                public void onSuccess(SendResult<String, DeadLetter> result) {
+                    log.info(String.format("[ PRODUCED ] [ DEAD_LETTER ] Topic: %s, Partition: %s, Offset: %s, Key: %s, Value: %s", topic, result.getRecordMetadata().partition(), result.getRecordMetadata().offset(), result.getProducerRecord().key(), result.getProducerRecord().value()));
+                }
+                @Override
+                public void onFailure(Throwable ex) {
+                    throw new RuntimeException("Event sending failed !");
+                }
+            });
+        }
+    }
+
+    public void produceDeadLetterBySa(ServiceAgreementDataV2 serviceAgreementDataV2, String topic, Map<String, String> params) {
+        RecordHeaders headers = new RecordHeaders();
+        params.forEach( (k,v) -> {
+            headers.add(new RecordHeader(k, v.getBytes()));
+        });
+        DeadLetter deadLetter = DeadLetterEntityMapper.mapToAvro(serviceAgreementDataV2, ServiceAgreementDataV2.SCHEMA$, ServiceAgreementDataV2.class, params);
+        this.produceDeadLetter(deadLetter, topic, params);
+    }
 
     public Transaction sendTransaction(Transaction transaction, String topic) {
 //        UUID.fromString(transaction.getTransactionId().toString())

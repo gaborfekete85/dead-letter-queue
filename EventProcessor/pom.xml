@@ -132,6 +132,7 @@
 							<customConversions>org.apache.avro.Conversions$UUIDConversion</customConversions>
 							<imports>
 								<import>${project.basedir}/src/main/resources/avro/Context.avsc</import>
+<!--								<import>${project.basedir}/src/main/resources/avro/MetaInfo.avsc</import>-->
 							</imports>
 						</configuration>
 					</execution>

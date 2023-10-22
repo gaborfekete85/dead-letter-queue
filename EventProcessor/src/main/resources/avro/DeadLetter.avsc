@@ -1,0 +1,48 @@
+{
+  "namespace": "com.feketegabor.streaming.avro.model",
+  "type": "record",
+  "name": "DeadLetter",
+  "fields": [
+    {
+      "name": "dltKey",
+      "type":  [ "null", "string" ],
+      "default": null
+    },
+    {
+      "name": "eventKey",
+      "type":  "string"
+    },
+    {
+      "name": "eventType",
+      "type":  "string"
+    },
+    {
+      "name": "topic",
+      "type":  "string"
+    },
+    {
+      "name": "partition",
+      "type":  "string"
+    },
+    {
+      "name": "offset",
+      "type":  "string"
+    },
+    {
+      "name": "json",
+      "type":  "string"
+    },
+    {
+      "name": "avro",
+      "type":  "string"
+    },
+    {
+      "name": "reason",
+      "type":  "string"
+    },
+    {
+      "name": "createdAt",
+      "type": "string"
+    }
+  ]
+}
