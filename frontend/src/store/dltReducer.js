@@ -75,8 +75,9 @@ const taskReducer = (state = initialState, action) => {
                 listOfDlt = [payload].concat(listOfDlt);
                 currentCounter += 1;
                 const date = new Date(payload.createdAt);
-                const dayOfWeek = date.getUTCDay();
-                currentEventsPerDay[dayOfWeek-1] += 1;
+                const dayOfWeek = (date.getUTCDay() + 6) % 7;
+                // alert("dayOfWeek: " + (dayOfWeek-1+7)%7);
+                currentEventsPerDay[dayOfWeek] += 1;
                 if(currentCounterOfTopic[topic]) {
                   let c = currentCounterOfTopic[topic] + 1;
                   currentCounterOfTopic = {
@@ -94,8 +95,8 @@ const taskReducer = (state = initialState, action) => {
                 listOfDlt = listOfDlt.filter( x => x.dltKey !== payload.dltKey);
                 currentCounter -= 1;
                 const date = new Date(originalEvent.createdAt);
-                const dayOfWeek = date.getUTCDay();
-                currentEventsPerDay[dayOfWeek-1] -= 1;
+                const dayOfWeek = (date.getUTCDay() + 6) % 7;
+                currentEventsPerDay[dayOfWeek] -= 1;
                 if(currentCounterOfTopic[originalEvent.topic]) {
                   let c = currentCounterOfTopic[originalEvent.topic] - 1;
                   currentCounterOfTopic = {

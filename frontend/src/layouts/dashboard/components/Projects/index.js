@@ -101,7 +101,7 @@ function Projects() {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: 400,
+    width: 700,
     bgcolor: '#ecf4f8',
     borderRadius: 3,
     // border: '1px solid #000',
@@ -268,7 +268,6 @@ function Projects() {
           flexDirection={{ xs: "column", sm: "row" }}
           mb={2}
         >
-                <Button onClick={handleOpen}>Open modal</Button>
       <Modal
         open={open}
         onClose={handleClose}
@@ -279,6 +278,9 @@ function Projects() {
           <Typography id="modal-modal-title" variant="h6" component="h2">
             Resend the event to: 
           </Typography>
+          <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+              {resendDltKey}
+            </Typography>
           <Typography id="modal-modal-description" sx={{ mt: 2 }}>
             <TextField style={{ width: "100%", fontColor: "#fff" }} id="outlined-basic" label="Topic" variant="outlined" value={resendTopic} 
             onChange={(event) => {
