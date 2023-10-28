@@ -37,7 +37,7 @@ const initialState = {
 const sortObjectKeys = (topicCounter) => {
   if(!topicCounter) {
     return {};
-  }
+}
 
   // Step 1: Convert the object into an array of key-value pairs
   const keyValueArray = Object.entries(topicCounter);
@@ -60,40 +60,60 @@ const taskReducer = (state = initialState, action) => {
             case NEW_DLT:
               console.log("action.payload: " + action.payload);
               let payload = JSON.parse(action.payload);
-              
+              // alert(JSON.stringify(payload), null, 2);
 
               // alert("Create At: " + payload.createdAt);
-              const date = new Date(payload.createdAt);
-              const dayOfWeek = date.getUTCDay();
               // alert("dayOfWeek: " + dayOfWeek);
 
-              let originalList = state.list;
-              
-              const listOfDlt = [payload].concat(originalList);
-              let currentCounter = state.counter;
-              
+              let listOfDlt = JSON.parse(JSON.stringify(state.list));
+              let currentCounter = state.counter;              
               let topic = payload.topic;
               let currentCounterOfTopic = state.counterPerTopic;
               let currentEventsPerDay = JSON.parse(JSON.stringify(state.eventsPerDay));
-              currentEventsPerDay[dayOfWeek-1] += 1;
 
-              if(currentCounterOfTopic[topic]) {
-                let c = currentCounterOfTopic[topic] + 1;
-                currentCounterOfTopic = {
-                  ...currentCounterOfTopic,
-                  [topic]: c
-                }
+              if(payload.eventKey) {
+                listOfDlt = [payload].concat(listOfDlt);
+                currentCounter += 1;
+                const date = new Date(payload.createdAt);
+                const dayOfWeek = date.getUTCDay();
+                currentEventsPerDay[dayOfWeek-1] += 1;
+                if(currentCounterOfTopic[topic]) {
+                  let c = currentCounterOfTopic[topic] + 1;
+                  currentCounterOfTopic = {
+                    ...currentCounterOfTopic,
+                    [topic]: c
+                  }
+                } else {
+                  currentCounterOfTopic = {
+                    ...currentCounterOfTopic,
+                    [topic]: 1
+                  };
+                }  
               } else {
-                currentCounterOfTopic = {
-                  ...currentCounterOfTopic,
-                  [topic]: 1
-                };
+                let originalEvent = listOfDlt.filter( x => x.dltKey === payload.dltKey)[0];
+                listOfDlt = listOfDlt.filter( x => x.dltKey !== payload.dltKey);
+                currentCounter -= 1;
+                const date = new Date(originalEvent.createdAt);
+                const dayOfWeek = date.getUTCDay();
+                currentEventsPerDay[dayOfWeek-1] -= 1;
+                if(currentCounterOfTopic[originalEvent.topic]) {
+                  let c = currentCounterOfTopic[originalEvent.topic] - 1;
+                  currentCounterOfTopic = {
+                    ...currentCounterOfTopic,
+                    [originalEvent.topic]: c
+                  }
+                } else {
+                  currentCounterOfTopic = {
+                    ...currentCounterOfTopic,
+                    [originalEvent.topic]: 0
+                  };
+                }
               }
               
               return {
                   ...state,
                   list: listOfDlt,
-                  counter: ++currentCounter,
+                  counter: currentCounter,
                   counterPerTopic: sortObjectKeys(currentCounterOfTopic),
                   eventsPerDay: currentEventsPerDay
               };

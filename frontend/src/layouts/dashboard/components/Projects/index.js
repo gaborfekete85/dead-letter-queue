@@ -52,7 +52,6 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AltRouteIcon from '@mui/icons-material/AltRoute';
 
 // Billing page components
-import Bill from "layouts/billing/components/Bill";
 import DeadLetterItem from "layouts/billing/components/DeadLetterItem";
 
 // import Table from '@mui/material/Table';
@@ -230,10 +229,8 @@ function Projects() {
       <MDBox component="ul" display="flex" flexDirection="column" p={0} m={0}>
       {deadLetters.map((item, index) => (
           <DeadLetterItem
-            name={shortenEventType(item.eventType)  }
-            company="viking burrito"
-            email="oliver@burrito.com"
-            vat="FRB1235476"
+            asString={JSON.stringify(item)}
+            dltKey={item.dltKey}
             eventType={shortenEventType(item.eventType)}
             service="PCO"
             topic={item.topic}
@@ -245,123 +242,9 @@ function Projects() {
             noGutter
           />    
       ))}
-        
-          <Bill
-            name="oliver liam"
-            company="viking burrito"
-            email="oliver@burrito.com"
-            vat="FRB1235476"
-          />
-          <Bill
-            name="lucas harper"
-            company="stone tech zone"
-            email="lucas@stone-tech.com"
-            vat="FRB1235476"
-          />
-          <Bill
-            name="ethan james"
-            company="fiber notion"
-            email="ethan@fiber.com"
-            vat="FRB1235476"
-            noGutter
-          />
         </MDBox>
       </MDBox>
     </Card>
-    
-      <MDBox display="flex" justifyContent="space-between" alignItems="center" p={3}>
-        <MDBox>
-          <MDTypography variant="h6" gutterBottom>
-            {/* <pre>
-              {JSON.stringify(counterPerTopic, null, 4)}
-            </pre> */}
-            {/* <h2>Top Failure topic</h2>
-            <pre>
-              {counterPerTopic ? Object.keys(counterPerTopic)[0] + " (" + counterPerTopic[Object.keys(counterPerTopic)[0]] + ")" : "No failed event yet"}
-            </pre> */}
-            Failed Events
-          </MDTypography>
-          <MDBox display="flex" alignItems="center" lineHeight={0}>
-            <AltRouteIcon color="primary"/>
-            {/* <Icon
-              sx={{
-                fontWeight: "bold",
-                color: ({ palette: { info } }) => info.main,
-                mt: -0.5,
-              }}
-            >
-              altRoute
-            </Icon> */}
-            <MDTypography variant="button" fontWeight="regular" color="text">
-              &nbsp;<strong>{countOfdeadLetters}</strong> events failed. 
-            </MDTypography>
-          </MDBox>
-        </MDBox>
-        <MDBox color="text" px={2}>
-          <Icon sx={{ cursor: "pointer", fontWeight: "bold" }} fontSize="small" onClick={openMenu}>
-            more_vert
-          </Icon>
-        </MDBox>
-        {renderMenu}
-      </MDBox>
-      <TableContainer style={{ width: '100%' }}>
-        {loaded === "loading" ? (
-          <p>Loading ... </p>
-        ) : (
-          <Table style={{ width: '100%' }}>
-          {/* <TableHead style={{ width: '100%' }}>
-            <TableRow style={{ width: '100%' }}>
-              <TableCell>Column 1</TableCell>
-              <TableCell>Column 2</TableCell>
-              <TableCell>Column 3</TableCell>
-            </TableRow>
-          </TableHead> */}
-          <TableBody>
-            <TableRow>
-              <TableCell><strong>Event Type</strong></TableCell>
-              <TableCell><strong>Topic</strong></TableCell>
-              <TableCell><strong>Created At</strong></TableCell>
-            </TableRow>
-            {deadLetters.map((item, index) => (
-              <>
-              <TableRow style={{ borderTop: "2px solid #33b864" }} key={index + "_1"}>
-                <TableCell>{shortenEventType(item.eventType)}</TableCell>
-                <TableCell>{item.topic + " - Partition:  " + item.partition + ", Offset:" + item.partitionOffset}</TableCell>
-                <TableCell>{item.createdAt}</TableCell>
-                {/* .substring(0, 200) */}
-              </TableRow>
-              <TableRow key={index + "_2"}>
-                  <TableCell colSpan={3}>
-                  <Accordion>
-                    <AccordionSummary
-                      expandIcon={<ExpandMoreIcon />}
-                      aria-controls="panel1a-content"
-                      id="panel1a-header"
-                    >
-                      <Typography>Details</Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      <Typography>
-                        <pre>Event</pre>
-                        <pre style={{fontSize: "10px"}}>{item.dataAsJson === undefined ? "" : JSON.stringify(JSON.parse(item.dataAsJson), null, 2)}</pre>      
-                        <br/><hr/><br/>
-                        <pre>Error</pre>
-                        <pre style={{fontSize: "10px"}}>{item.reason}</pre>
-                      </Typography>
-                    </AccordionDetails>
-                  </Accordion>
-                    
-                  </TableCell>
-              </TableRow>
-              {/* <TableRow key={index + "_3"}>
-                  <TableCell colSpan={3}><pre>{item.dataAsJson === undefined ? "" : JSON.stringify(JSON.parse(item.dataAsJson), null, 2).substring(0, 200)} ... </pre></TableCell>
-              </TableRow> */}
-              </>
-            ))}
-          </TableBody>
-        </Table>
-        )}
-      </TableContainer>
     </Card>
   );
 }

@@ -32,10 +32,15 @@ import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AltRouteIcon from '@mui/icons-material/AltRoute';
 import Typography from "@mui/material/Typography";
+import producerService from "services/ProducerService";
 
-function DeadLetterItem({ noGutter, eventType, service, topic, partition, partitionOffset, createdAt, dataAsJson, reason  }) {
+function DeadLetterItem({ noGutter, asString, dltKey, eventType, service, topic, partition, partitionOffset, createdAt, dataAsJson, reason  }) {
   const [controller] = useMaterialUIController();
   const { darkMode } = controller;
+
+  const handleClick = (dltKey) => {
+    producerService.markAsResolved({ "dltTopicEventKey": dltKey }).then((res) => { alert(res.data )});
+  };
 
   return (
     <MDBox
@@ -58,17 +63,21 @@ function DeadLetterItem({ noGutter, eventType, service, topic, partition, partit
           mb={2}
         >
           <MDTypography variant="button" fontWeight="medium" textTransform="capitalize">
-            {eventType}
+            {eventType} - {dltKey}
           </MDTypography>
 
           <MDBox display="flex" alignItems="center" mt={{ xs: 2, sm: 0 }} ml={{ xs: -1.5, sm: 0 }}>
             <MDBox mr={1}>
               <MDButton variant="text" color="error">
-                <Icon>delete</Icon>&nbsp;Replay the event
+                <Icon>replay</Icon>&nbsp;Replay the event
               </MDButton>
             </MDBox>
-            <MDButton variant="text" color={darkMode ? "success" : "success"}>
-              <Icon>edit</Icon>&nbsp;Mark as resolved manually
+            <MDButton variant="text" color={darkMode ? "success" : "success"}
+              onClick={ handleClick.bind(null, dltKey) }
+            >
+              <Icon>done</Icon>&nbsp;Mark as resolved manually
+              
+              {/* producerService */}
             </MDButton>
           </MDBox>
         </MDBox>
@@ -82,7 +91,7 @@ function DeadLetterItem({ noGutter, eventType, service, topic, partition, partit
           <MDBox mb={1} lineHeight={1}>
             <MDTypography variant="caption" color="text">
               Topic:&nbsp;&nbsp;&nbsp;
-              <MDTypography variant="caption" fontWeight="medium" textTransform="capitalize">
+              <MDTypography variant="caption" fontWeight="medium" textTransform="none">
                 {topic}
               </MDTypography>
             </MDTypography>
