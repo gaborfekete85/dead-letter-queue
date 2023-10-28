@@ -70,6 +70,8 @@ public class ServiceAgreementListener {
     @Autowired
     private DeadLetterHandler deadLetterHandler;
 
+    private static final Random random = new Random();
+
     @KafkaListener(topics = "#{'${application.configs.topic.serviceAgreement}'}")
     public void serviceAgreementReceived(ConsumerRecord<String, ServiceAgreementDataV2> event) {
         try {
@@ -336,7 +338,7 @@ public class ServiceAgreementListener {
             Map<String, String> headers = Map.of(
                     Kafkautil.DLT_ORIGINAL_EVENT_KEY, event.key().toString(),
                     Kafkautil.DLT_ORIGINAL_EVENT_TYPE, event.getClass().getName(),
-                    Kafkautil.DLT_ORIGINAL_TOPIC, event.topic(),
+                    Kafkautil.DLT_ORIGINAL_TOPIC, randomVersion(event.topic()),
                     Kafkautil.DLT_ORIGINAL_PARTITION, String.valueOf(event.partition()),
                     Kafkautil.DLT_ORIGINAL_OFFSET, String.valueOf(event.offset()),
                     Kafkautil.DLT_REASON, getDltException(event)
@@ -356,6 +358,11 @@ public class ServiceAgreementListener {
         }));
 
         return factory;
+    }
+
+    private String randomVersion(String input) {
+//        return String.format("%s%s", input.substring(0, input.length() - 1), String.valueOf(4));
+        return String.format("%s%s", input.substring(0, input.length() - 1), String.valueOf(random.nextInt(5) + 1));
     }
 
     private String getDltTopicName(ConsumerRecord<?, ?> r) {

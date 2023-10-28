@@ -68,7 +68,8 @@ public class DeadLetterEventHandler {
      public Flux<DeadLetterDTO> getEvents () {
       return 
     	 Flux.<DeadLetterDTO>create(sink -> {
-    		 hotFlux.subscribe(event -> sink.next(this.mapToDto(event)));
+					 hotFlux.subscribe(event -> sink.next(this.mapToDto(event))
+			 );
     	 })
     	 .share(); 
      }

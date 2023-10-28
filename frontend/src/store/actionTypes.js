@@ -3,3 +3,4 @@ export const UPDATE_TASK_TITLE = "UPDATE_TASK_TITLE";
 export const UPDATE_TASK_DESCRIPTION = "UPDATE_TASK_DESCRIPTION";
 
 export const DLT_QUERIED = "DLT_QUERIED";
+export const NEW_DLT = "NEW_DLT";

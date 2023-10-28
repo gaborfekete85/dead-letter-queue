@@ -13,6 +13,8 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 
+import { useState, useEffect } from "react";
+import {useDispatch, useSelector} from "react-redux";
 // @mui material components
 import Grid from "@mui/material/Grid";
 
@@ -37,6 +39,13 @@ import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
 
 function Dashboard() {
   const { sales, tasks } = reportsLineChartData;
+  const counterPerTopic = useSelector(state => state.deadLetters.counterPerTopic);
+  const eventsPerDay = useSelector(state => state.deadLetters.eventsPerDay);
+
+  const dataPerDay = {
+    labels: ["M", "T", "W", "T", "F", "S", "S"],
+    datasets: { label: "Failed events", data: eventsPerDay },
+  }
 
   return (
     <DashboardLayout>
@@ -47,13 +56,13 @@ function Dashboard() {
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="dark"
-                icon="weekend"
-                title="Bookings"
-                count={281}
+                icon="leaderboard"
+                title="Failed events: "
+                count={counterPerTopic ? counterPerTopic[Object.keys(counterPerTopic)[0]] : "N/A"}
                 percentage={{
                   color: "success",
-                  amount: "+55%",
-                  label: "than lask week",
+                  amount: "",
+                  label: Object.keys(counterPerTopic).length > 0 ? Object.keys(counterPerTopic)[0] : "N/A",
                 }}
               />
             </MDBox>
@@ -62,12 +71,12 @@ function Dashboard() {
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 icon="leaderboard"
-                title="Today's Users"
-                count="2,300"
+                title="Failed events: "
+                count={counterPerTopic ? counterPerTopic[Object.keys(counterPerTopic)[1]] : "N/A"}
                 percentage={{
                   color: "success",
-                  amount: "+3%",
-                  label: "than last month",
+                  amount: "",
+                  label: Object.keys(counterPerTopic).length > 1 ? Object.keys(counterPerTopic)[1] : "N/A",
                 }}
               />
             </MDBox>
@@ -76,13 +85,13 @@ function Dashboard() {
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="success"
-                icon="store"
-                title="Revenue"
-                count="34k"
+                icon="leaderboard"
+                title="Failed events: "
+                count={counterPerTopic ? counterPerTopic[Object.keys(counterPerTopic)[2]] : "N/A"}
                 percentage={{
                   color: "success",
-                  amount: "+1%",
-                  label: "than yesterday",
+                  amount: "",
+                  label: Object.keys(counterPerTopic).length > 2 ? Object.keys(counterPerTopic)[2] : "N/A"
                 }}
               />
             </MDBox>
@@ -91,13 +100,13 @@ function Dashboard() {
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="primary"
-                icon="person_add"
-                title="Followers"
-                count="+91"
+                icon="leaderboard"
+                title="Failed events: "
+                count={counterPerTopic ? counterPerTopic[Object.keys(counterPerTopic)[3]] : "N/A"}
                 percentage={{
                   color: "success",
                   amount: "",
-                  label: "Just updated",
+                  label: Object.keys(counterPerTopic).length > 3 ? Object.keys(counterPerTopic)[3] : "N/A",
                 }}
               />
             </MDBox>
@@ -112,11 +121,11 @@ function Dashboard() {
                   title="website views"
                   description="Last Campaign Performance"
                   date="campaign sent 2 days ago"
-                  chart={reportsBarChartData}
+                  chart={dataPerDay}
                 />
               </MDBox>
             </Grid>
-            <Grid item xs={12} md={6} lg={4}>
+            <Grid item xs={12} md={6} lg={8}>
               <MDBox mb={3}>
                 <ReportsLineChart
                   color="success"
@@ -127,21 +136,21 @@ function Dashboard() {
                     </>
                   }
                   date="updated 4 min ago"
-                  chart={sales}
+                  chart={dataPerDay}
                 />
               </MDBox>
             </Grid>
-            <Grid item xs={12} md={6} lg={4}>
+            {/* <Grid item xs={12} md={6} lg={4}>
               <MDBox mb={3}>
                 <ReportsLineChart
                   color="dark"
                   title="completed tasks"
                   description="Last Campaign Performance"
                   date="just updated"
-                  chart={tasks}
+                  chart={dataPerDay}
                 />
               </MDBox>
-            </Grid>
+            </Grid> */}
           </Grid>
         </MDBox>
         <MDBox>

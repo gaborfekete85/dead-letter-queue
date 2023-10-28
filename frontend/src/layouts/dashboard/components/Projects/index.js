@@ -44,6 +44,17 @@ import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import {useDispatch, useSelector} from "react-redux";
+
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import AltRouteIcon from '@mui/icons-material/AltRoute';
+
+// Billing page components
+import Bill from "layouts/billing/components/Bill";
+import DeadLetterItem from "layouts/billing/components/DeadLetterItem";
+
 // import Table from '@mui/material/Table';
 // import TableHead from '@mui/material/TableHead';
 // import TableRow from '@mui/material/TableRow';
@@ -57,12 +68,15 @@ import {useDispatch, useSelector} from "react-redux";
 // import AccordionSummary from "@mui/material/AccordionSummary";
 // import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
-import {queryDlt} from "store/actions";
+import {queryDlt, addNewDltEvent} from "store/actions";
 
 function Projects() {
   const { columns, rows } = data();
   const dispatch = useDispatch();
-  const deadLetters = useSelector(state => state.deadLetters.list)
+  const deadLetters = useSelector(state => state.deadLetters.list);
+  const countOfdeadLetters = useSelector(state => state.deadLetters.counter);
+  const counterPerTopic = useSelector(state => state.deadLetters.counterPerTopic);
+  
   // const [expanded, setExpanded] = React.useState(false);
 
   // const handleChange = (panel) => (event, isExpanded) => {
@@ -116,17 +130,54 @@ function Projects() {
     let splittedStr = eventType.split(".");
     return splittedStr[splittedStr.length - 1];
   };
+
+  const updateEvents = (event) => {
+    console.log("event: " + event);
+    dispatch(addNewDltEvent(event));
+  }
+
   useEffect(() => {
-    axios.get("/dlt/api/dlt").then((res) => {
-      dispatch(queryDlt(res.data))
-    });
+    //fetchStockPrice();
+    // alert("Start streaming ... ");
+    const eventSource = new EventSource(`/dlt/api/dlt/stream`);
+    eventSource.onmessage = (e) => updateEvents(e.data);
+    eventSource.onerror = (error) => {
+      console.error('Error:', error);
+    };
+    return () => {
+      eventSource.close();
+    };
   }, []);
+
+  // useEffect(() => {
+  //   axios.get("/dlt/api/dlt").then((res) => {
+  //     dispatch(queryDlt(res.data))
+  //   });
+  //   const eventSource = new EventSource("http://localhost:8300/dlt/api/dlt/stream");
+  //   eventSource.onmessage = (e) => {
+  //     console.log("Event received");
+  //     // alert(JSON.stringify(e));
+  //     // addNewEvent(e.data);
+  //   };
+  // }, []);
+
+  const addNewEvent = (data) => {
+    const parsedData = JSON.parse(data);
+    console.log("Event failed " + JSON.stringify(data));
+    // dispatch({
+    //   type: POSITION_UPDTATED,
+    //   payload: parsedData,
+    // });
+  };
 
   useEffect(() => {
     if(deadLetters !== undefined) {
       // alert("DeadLetters changed 1");
       // alert(JSON.stringify(deadLetters));
       setLoaded("loaded");
+      // return () => {
+      //   eventSource.close();
+      // };
     }
   }, [deadLetters]);
 
@@ -153,23 +204,96 @@ function Projects() {
 
   return (
     <Card>
-      <MDBox display="flex" justifyContent="space-between" alignItems="center" p={3}>
-        <MDBox>
-          <MDTypography variant="h6" gutterBottom>
-            Failed Events
-          </MDTypography>
-          <MDBox display="flex" alignItems="center" lineHeight={0}>
-            <Icon
+          <Card id="delete-account">
+      <MDBox pt={3} px={2}>
+        <MDTypography variant="h6" fontWeight="medium">
+          Failed Events
+        </MDTypography>
+        <MDBox display="flex" alignItems="center" lineHeight={0}>
+            <AltRouteIcon color="primary"/>
+            {/* <Icon
               sx={{
                 fontWeight: "bold",
                 color: ({ palette: { info } }) => info.main,
                 mt: -0.5,
               }}
             >
-              done
-            </Icon>
+              altRoute
+            </Icon> */}
             <MDTypography variant="button" fontWeight="regular" color="text">
-              &nbsp;<strong>30 done</strong> this month
+              &nbsp;<strong>{countOfdeadLetters}</strong> events failed. 
+            </MDTypography>
+          </MDBox>
+
+      </MDBox>
+      <MDBox pt={1} pb={2} px={2}>
+      <MDBox component="ul" display="flex" flexDirection="column" p={0} m={0}>
+      {deadLetters.map((item, index) => (
+          <DeadLetterItem
+            name={shortenEventType(item.eventType)  }
+            company="viking burrito"
+            email="oliver@burrito.com"
+            vat="FRB1235476"
+            eventType={shortenEventType(item.eventType)}
+            service="PCO"
+            topic={item.topic}
+            partition={item.partition}
+            partitionOffset={item.partitionOffset}
+            createdAt={item.createdAt}
+            dataAsJson={item.dataAsJson}
+            reason={item.reason}
+            noGutter
+          />    
+      ))}
+        
+          <Bill
+            name="oliver liam"
+            company="viking burrito"
+            email="oliver@burrito.com"
+            vat="FRB1235476"
+          />
+          <Bill
+            name="lucas harper"
+            company="stone tech zone"
+            email="lucas@stone-tech.com"
+            vat="FRB1235476"
+          />
+          <Bill
+            name="ethan james"
+            company="fiber notion"
+            email="ethan@fiber.com"
+            vat="FRB1235476"
+            noGutter
+          />
+        </MDBox>
+      </MDBox>
+    </Card>
+    
+      <MDBox display="flex" justifyContent="space-between" alignItems="center" p={3}>
+        <MDBox>
+          <MDTypography variant="h6" gutterBottom>
+            {/* <pre>
+              {JSON.stringify(counterPerTopic, null, 4)}
+            </pre> */}
+            {/* <h2>Top Failure topic</h2>
+            <pre>
+              {counterPerTopic ? Object.keys(counterPerTopic)[0] + " (" + counterPerTopic[Object.keys(counterPerTopic)[0]] + ")" : "No failed event yet"}
+            </pre> */}
+            Failed Events
+          </MDTypography>
+          <MDBox display="flex" alignItems="center" lineHeight={0}>
+            <AltRouteIcon color="primary"/>
+            {/* <Icon
+              sx={{
+                fontWeight: "bold",
+                color: ({ palette: { info } }) => info.main,
+                mt: -0.5,
+              }}
+            >
+              altRoute
+            </Icon> */}
+            <MDTypography variant="button" fontWeight="regular" color="text">
+              &nbsp;<strong>{countOfdeadLetters}</strong> events failed. 
             </MDTypography>
           </MDBox>
         </MDBox>
@@ -200,18 +324,38 @@ function Projects() {
             </TableRow>
             {deadLetters.map((item, index) => (
               <>
-              <TableRow style={{ borderTop: "2px solid #33b864" }} key={index}>
+              <TableRow style={{ borderTop: "2px solid #33b864" }} key={index + "_1"}>
                 <TableCell>{shortenEventType(item.eventType)}</TableCell>
                 <TableCell>{item.topic + " - Partition:  " + item.partition + ", Offset:" + item.partitionOffset}</TableCell>
                 <TableCell>{item.createdAt}</TableCell>
-                {/* <TableCell>{shortenEventType(item.eventType)}</TableCell> */}
+                {/* .substring(0, 200) */}
               </TableRow>
-              <TableRow>
-                  <TableCell colSpan={3}><pre>{item.reason.substring(0, 100)} ... </pre></TableCell>
+              <TableRow key={index + "_2"}>
+                  <TableCell colSpan={3}>
+                  <Accordion>
+                    <AccordionSummary
+                      expandIcon={<ExpandMoreIcon />}
+                      aria-controls="panel1a-content"
+                      id="panel1a-header"
+                    >
+                      <Typography>Details</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <Typography>
+                        <pre>Event</pre>
+                        <pre style={{fontSize: "10px"}}>{item.dataAsJson === undefined ? "" : JSON.stringify(JSON.parse(item.dataAsJson), null, 2)}</pre>      
+                        <br/><hr/><br/>
+                        <pre>Error</pre>
+                        <pre style={{fontSize: "10px"}}>{item.reason}</pre>
+                      </Typography>
+                    </AccordionDetails>
+                  </Accordion>
+                    
+                  </TableCell>
               </TableRow>
-              <TableRow>
-                  <TableCell colSpan={3}><pre>{JSON.stringify(JSON.parse(item.dataAsJson), null, 2).substring(0, 200)} ... </pre></TableCell>
-              </TableRow>
+              {/* <TableRow key={index + "_3"}>
+                  <TableCell colSpan={3}><pre>{item.dataAsJson === undefined ? "" : JSON.stringify(JSON.parse(item.dataAsJson), null, 2).substring(0, 200)} ... </pre></TableCell>
+              </TableRow> */}
               </>
             ))}
           </TableBody>

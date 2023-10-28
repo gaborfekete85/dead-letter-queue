@@ -11,6 +11,7 @@ import java.util.UUID;
 public class DeadLetterDTO {
 //    private UUID id;
     private UUID dltKey;
+//    private String message;
     private UUID eventKey;
     private String eventType;
     private String topic;

@@ -3,16 +3,16 @@ package guru.learningjournal.examples.kafka.avroposfanout.controller;
 import com.feketegabor.streaming.avro.model.DeadLetter;
 import com.feketegabor.streaming.avro.model.ServiceAgreementDataV2;
 import guru.learningjournal.examples.kafka.avroposfanout.controller.domain.DeadLetterDTO;
+import guru.learningjournal.examples.kafka.avroposfanout.controller.domain.MessageDTO;
 import guru.learningjournal.examples.kafka.avroposfanout.controller.domain.ServiceAgreementDTO;
 import guru.learningjournal.examples.kafka.avroposfanout.services.KafkaStores;
 import guru.learningjournal.examples.kafka.avroposfanout.services.listener.DeadLetterEventHandler;
+import guru.learningjournal.examples.kafka.avroposfanout.services.listener.MessageEventHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
 import java.time.LocalDateTime;
@@ -20,6 +20,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -31,24 +32,52 @@ public class ServiceAgreementController {
 
     private final KafkaStores kafkaStores;
     private final DeadLetterEventHandler deadLetterEventHandler;
+    private final MessageEventHandler messageEventHandler;
 
     @GetMapping(path = "/sa", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.ACCEPTED)
     public Flux<ServiceAgreementDTO> get() {
+        return Flux.fromStream(kafkaStores.getServiceAgreements().toStream().map(this::mapToSaDto)).log();
+    }
+
+    @GetMapping(path = "/sa/stream", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public Flux<ServiceAgreementDTO> getSaStream() {
 //        return saStore.getPositions().log();
         return Flux.fromStream(kafkaStores.getServiceAgreements().toStream().map(this::mapToSaDto)).log();
     }
 
+
     @GetMapping(path = "/dlt", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public Flux<DeadLetterDTO> getDlt() {
-        return Flux.fromStream(kafkaStores.getDeadLetters().toStream().map(DeadLetterEventHandler::mapToDto)).log();
+    public ResponseEntity<List<DeadLetterDTO>> getDlt() {
+//        return Flux.fromStream(kafkaStores.getDeadLetters().toStream().map(DeadLetterEventHandler::mapToDto)).log();
+//        return Flux.fromStream(kafkaStores.getDeadLetters()).log();
+        return ResponseEntity.ok(List.of());
     }
 
     @GetMapping(path = "/dlt/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    @ResponseStatus(HttpStatus.ACCEPTED)
+//    @ResponseStatus(HttpStatus.ACCEPTED)
     public Flux<DeadLetterDTO> getDltAsStream() {
-        return deadLetterEventHandler.getEvents().log();
+        return deadLetterEventHandler.getEvents();
+    }
+
+//    @PostMapping(path = "/message")
+//    @ResponseStatus(HttpStatus.ACCEPTED)
+//    public void sendMessage(@RequestBody MessageDTO messageDTO) {
+//        messageEventHandler.handle(messageDTO);
+////        return ResponseEntity.ok(messageDTO);
+//    }
+
+    @GetMapping(path = "/message")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void sendMessage(@RequestParam String message) {
+        messageEventHandler.handle(MessageDTO.builder().message(message).build());
+    }
+
+    @GetMapping(path = "/message/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<MessageDTO> getMessages() {
+        return messageEventHandler.getMessages();
     }
 
 //    private DeadLetterDTO mapToDto(DeadLetter deadLetter) {
