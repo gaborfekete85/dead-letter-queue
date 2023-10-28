@@ -12,7 +12,7 @@ Coded by www.creative-tim.com
 
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
-
+import * as React from 'react';
 import { useState, useEffect } from "react";
 
 // @mui material components
@@ -53,6 +53,8 @@ import AltRouteIcon from '@mui/icons-material/AltRoute';
 
 // Billing page components
 import DeadLetterItem from "layouts/billing/components/DeadLetterItem";
+import Modal from '@mui/material/Modal';
+import Button from '@mui/material/Button';
 
 // import Table from '@mui/material/Table';
 // import TableHead from '@mui/material/TableHead';
@@ -68,6 +70,7 @@ import DeadLetterItem from "layouts/billing/components/DeadLetterItem";
 // import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 import {queryDlt, addNewDltEvent} from "store/actions";
+import TextField from '@mui/material/TextField';
 
 function Projects() {
   const { columns, rows } = data();
@@ -76,6 +79,37 @@ function Projects() {
   const countOfdeadLetters = useSelector(state => state.deadLetters.counter);
   const counterPerTopic = useSelector(state => state.deadLetters.counterPerTopic);
   
+  const [open, setOpen] = React.useState(false);
+  const [resendTopic, setResendTopic] = React.useState("");
+  const [resendDltKey, setResendDltKey] = React.useState("");
+
+  const handleOpen = (dltKey, originalTopic) => {
+    setResendTopic(originalTopic);
+    setResendDltKey(dltKey);
+    // alert("DltKey: " + dltKey + ", Original Topic: " + originalTopic)
+    setOpen(true);
+  };
+  const handleClose = () => setOpen(false);
+
+  const handleResend = () => {
+    // alert("DltKey: " + resendDltKey + ", Original Topic: " + resendTopic);
+    handleClose();
+  };
+
+  const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    bgcolor: '#ecf4f8',
+    borderRadius: 3,
+    // border: '1px solid #000',
+    boxShadow: 24,
+    p: 4,
+  };
+
+
   // const [expanded, setExpanded] = React.useState(false);
 
   // const handleChange = (panel) => (event, isExpanded) => {
@@ -226,7 +260,39 @@ function Projects() {
 
       </MDBox>
       <MDBox pt={1} pb={2} px={2}>
+
+      <MDBox
+          display="flex"
+          justifyContent="space-between"
+          alignItems={{ xs: "flex-start", sm: "center" }}
+          flexDirection={{ xs: "column", sm: "row" }}
+          mb={2}
+        >
+                <Button onClick={handleOpen}>Open modal</Button>
+      <Modal
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={style}>
+          <Typography id="modal-modal-title" variant="h6" component="h2">
+            Resend the event to: 
+          </Typography>
+          <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+            <TextField style={{ width: "100%", fontColor: "#fff" }} id="outlined-basic" label="Topic" variant="outlined" value={resendTopic} 
+            onChange={(event) => {
+              setResendTopic(event.target.value);
+              }}
+            />
+            <Button style={{ width: "100%" }} color="success" variant="contained" onClick={handleResend}>Submit >> </Button>
+          </Typography>
+        </Box>
+      </Modal>
+      </MDBox>
+
       <MDBox component="ul" display="flex" flexDirection="column" p={0} m={0}>
+        
       {deadLetters.map((item, index) => (
           <DeadLetterItem
             asString={JSON.stringify(item)}
@@ -239,6 +305,7 @@ function Projects() {
             createdAt={item.createdAt}
             dataAsJson={item.dataAsJson}
             reason={item.reason}
+            resendCallback={handleOpen}
             noGutter
           />    
       ))}

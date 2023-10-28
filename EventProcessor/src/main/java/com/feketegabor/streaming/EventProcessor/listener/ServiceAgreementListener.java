@@ -55,6 +55,9 @@ public class ServiceAgreementListener {
     @Value("${application.configs.topic.transactionV2Dlt}")
     private String TRANASCTION_V2_DLT;
 
+    @Value("${spring.application.name}")
+    private String applicationId;
+
     @Autowired
     private KafkaProducerService kafkaProducerService;
 
@@ -81,6 +84,7 @@ public class ServiceAgreementListener {
                 throw new RuntimeException("Key Starts with Digit");
             } else {
                 log.info("[ CONSUMED ] Service Agreement received on topic {}, Partition: {}, Offset: {}, Event: {}", event.topic(), event.partition(), event.offset(), event.value());
+//                String dltTopicKey = getHeader(Kafkautil.DLT_TOPIC_EVENT_KEY, event);
                 kafkaProducerService.tombstoneServiceAgreementV2(event.key(), dltTopic);
 //                CompletableFuture
 //                        .runAsync( () -> kafkaProducerService.tombstoneServiceAgreementV2(event.key(), dltTopic))
@@ -94,6 +98,7 @@ public class ServiceAgreementListener {
             }
         } catch (Throwable t) {
             log.error("ERR_PCO_2001: [ KAFKA ] Unexpected error during consuming the event.", t);
+            event.headers().add(Kafkautil.DLT_SERVICE_ID, applicationId.getBytes());
             event.headers().add(Kafkautil.DLT_TOPIC_NAME_HEADER, dltTopic.getBytes());
             event.headers().add(Kafkautil.DLT_ORIGINAL_EVENT_KEY, event.key().getBytes());
             event.headers().add(Kafkautil.DLT_ORIGINAL_EVENT_TYPE, event.value().getClass().getName().getBytes());

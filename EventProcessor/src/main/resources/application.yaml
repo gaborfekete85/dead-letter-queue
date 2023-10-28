@@ -12,6 +12,8 @@ application:
       transactionV2Dlt: transaction_v2_dlt
 
 spring:
+  application:
+    name: PCO Service
   datasource:
     url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/postgres?currentSchema=public}
     username: ${DATASOURCE_USER:postgres}

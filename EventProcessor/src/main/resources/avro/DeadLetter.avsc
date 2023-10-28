@@ -9,6 +9,11 @@
       "default": null
     },
     {
+      "name": "service",
+      "type":  [ "null", "string" ],
+      "default": null
+    },
+    {
       "name": "eventKey",
       "type":  "string"
     },

@@ -14,6 +14,7 @@ Coded by www.creative-tim.com
 */
 
 // prop-types is a library for typechecking of props
+import * as React from 'react';
 import PropTypes from "prop-types";
 
 // @mui material components
@@ -33,14 +34,23 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AltRouteIcon from '@mui/icons-material/AltRoute';
 import Typography from "@mui/material/Typography";
 import producerService from "services/ProducerService";
+import Modal from '@mui/material/Modal';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 
-function DeadLetterItem({ noGutter, asString, dltKey, eventType, service, topic, partition, partitionOffset, createdAt, dataAsJson, reason  }) {
+function DeadLetterItem({ noGutter, asString, dltKey, eventType, service, topic, partition, partitionOffset, createdAt, dataAsJson, reason, resendCallback  }) {
   const [controller] = useMaterialUIController();
   const { darkMode } = controller;
 
-  const handleClick = (dltKey) => {
+  const handleMarkAsResolved = (dltKey) => {
     producerService.markAsResolved({ "dltTopicEventKey": dltKey }).then((res) => { alert(res.data )});
   };
+  
+  const handleResend = (dltKey, topic) => {
+    resendCallback(dltKey, topic);
+  };
+  
+  
 
   return (
     <MDBox
@@ -68,12 +78,15 @@ function DeadLetterItem({ noGutter, asString, dltKey, eventType, service, topic,
 
           <MDBox display="flex" alignItems="center" mt={{ xs: 2, sm: 0 }} ml={{ xs: -1.5, sm: 0 }}>
             <MDBox mr={1}>
-              <MDButton variant="text" color="error">
+              <MDButton variant="text" color="error"
+                onClick={ handleResend.bind(null, dltKey, topic) }
+              >
                 <Icon>replay</Icon>&nbsp;Replay the event
+
               </MDButton>
             </MDBox>
             <MDButton variant="text" color={darkMode ? "success" : "success"}
-              onClick={ handleClick.bind(null, dltKey) }
+              onClick={ handleMarkAsResolved.bind(null, dltKey) }
             >
               <Icon>done</Icon>&nbsp;Mark as resolved manually
               
