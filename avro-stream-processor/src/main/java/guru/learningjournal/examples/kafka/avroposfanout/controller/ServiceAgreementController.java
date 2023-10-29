@@ -3,26 +3,26 @@ package guru.learningjournal.examples.kafka.avroposfanout.controller;
 import com.feketegabor.streaming.avro.model.DeadLetter;
 import com.feketegabor.streaming.avro.model.ServiceAgreementDataV2;
 import guru.learningjournal.examples.kafka.avroposfanout.controller.domain.DeadLetterDTO;
+import guru.learningjournal.examples.kafka.avroposfanout.controller.domain.RetryDto;
 import guru.learningjournal.examples.kafka.avroposfanout.controller.domain.MessageDTO;
 import guru.learningjournal.examples.kafka.avroposfanout.controller.domain.ServiceAgreementDTO;
+import guru.learningjournal.examples.kafka.avroposfanout.services.KafkaProducerService;
 import guru.learningjournal.examples.kafka.avroposfanout.services.KafkaStores;
 import guru.learningjournal.examples.kafka.avroposfanout.services.listener.DeadLetterEventHandler;
 import guru.learningjournal.examples.kafka.avroposfanout.services.listener.MessageEventHandler;
+import guru.learningjournal.examples.kafka.avroposfanout.util.Kafkautil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
-import java.time.LocalDateTime;
+import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -33,6 +33,10 @@ public class ServiceAgreementController {
     private final KafkaStores kafkaStores;
     private final DeadLetterEventHandler deadLetterEventHandler;
     private final MessageEventHandler messageEventHandler;
+    private final KafkaProducerService kafkaProducerService;
+
+    @Value("${application.configs.topic.serviceAgreementRetry}")
+    private String RETRY_SERVICE_AGRREMENT_TOPIC_NAME;
 
     @GetMapping(path = "/sa", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.ACCEPTED)
@@ -79,6 +83,20 @@ public class ServiceAgreementController {
     public Flux<MessageDTO> getMessages() {
         return messageEventHandler.getMessages();
     }
+
+    @PostMapping(value ="/kafka/retry", produces = "application/json")
+    public ResponseEntity<String> retryEvent(@RequestBody RetryDto retryDto) throws IOException {
+        DeadLetter dlt = kafkaStores.getById(retryDto.getDltTopicEventKey());
+        byte[] avroBytes = Base64.getDecoder().decode(dlt.getAvro().toString());
+        if(dlt.getEventType().toString().endsWith("ServiceAgreementDataV2")) {
+            ServiceAgreementDataV2 sa = Kafkautil.deserializeAvro(avroBytes, ServiceAgreementDataV2.SCHEMA$, ServiceAgreementDataV2.class);
+            kafkaProducerService.produceServiceAgreementV2(sa, retryDto.getTopic(), Map.of(
+                    Kafkautil.DLT_TOPIC_EVENT_KEY, retryDto.getDltTopicEventKey()
+            ));
+        }
+        return ResponseEntity.ok(String.format("%s event sent for retry to %s. ", retryDto.getDltTopicEventKey(), RETRY_SERVICE_AGRREMENT_TOPIC_NAME));
+    }
+
 
 //    private DeadLetterDTO mapToDto(DeadLetter deadLetter) {
 //        if(Objects.nonNull(deadLetter.getEventKey())) {

@@ -71,6 +71,7 @@ import Button from '@mui/material/Button';
 
 import {queryDlt, addNewDltEvent} from "store/actions";
 import TextField from '@mui/material/TextField';
+import producerService from "services/ProducerService";
 
 function Projects() {
   const { columns, rows } = data();
@@ -92,8 +93,13 @@ function Projects() {
   const handleClose = () => setOpen(false);
 
   const handleResend = () => {
-    // alert("DltKey: " + resendDltKey + ", Original Topic: " + resendTopic);
-    handleClose();
+    producerService.resendEvent({ 
+      "dltTopicEventKey": resendDltKey,
+      "topic": resendTopic 
+    }).then((res) => { 
+      // alert(res.data );
+      handleClose();
+    });
   };
 
   const style = {

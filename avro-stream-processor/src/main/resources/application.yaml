@@ -1,6 +1,30 @@
 server:
   port: 8756
+application:
+  configs:
+    topic:
+      serviceAgreement: pcmproser_pcoevents_serviceagreement_v2
+      serviceAgreementDlt: pcmproser_pcoevents_serviceagreement_v2_dlt
+      serviceAgreementRetry: pcmproser_pcoevents_serviceagreement_v2_retry
+
 spring:
+  kafka:
+    producer:
+      client-id: service-agreement-generator
+      bootstrap-servers: localhost:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      properties:
+        schema.registry.url: http://localhost:8081
+    consumer:
+      client-id: service-agreement-generator
+      group-id: process-service-group
+      bootstrap-servers: localhost:9092
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.streams.serdes.avro.SpecificAvroDeserializer
+      properties:
+        schema.registry.url: http://localhost:8081
+
   cloud:
     stream:
       bindings:

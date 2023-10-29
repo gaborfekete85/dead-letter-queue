@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 
 import reactor.core.publisher.Flux;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 @Component
 @RequiredArgsConstructor
 public class KafkaStores {
@@ -44,19 +46,31 @@ public class KafkaStores {
                 .share();
     }
 
-    public Flux<DeadLetter> getDeadLetterById(String key) {
-        return Flux.<DeadLetter>create(emitter -> {
-                    ReadOnlyKeyValueStore<String, DeadLetter> queryableStoreType = interactiveQueryService.getQueryableStore(dltStore, QueryableStoreTypes.keyValueStore());
-//                    emitter.next(queryableStoreType.get(key));
-                    queryableStoreType.all().forEachRemaining( k ->
-                    {
-                        if(key.equals(k.key)) {
-                            k.value.setDltKey(k.key);
-                            emitter.next(k.value);
+    public DeadLetter getById(String key) {
+        AtomicReference<DeadLetter> toReturn = new AtomicReference<>();
+        getDeadLetters()
+                .filter(x -> x.getDltKey() != null && key.equals(x.getDltKey()))
+                .subscribe( y -> {
+                            System.out.println(y);
+                            toReturn.set(y);
                         }
-                    });
-                    emitter.complete();
-                })
-                .share();
+                );
+        return toReturn.get();
     }
+
+//    public Flux<DeadLetter> getDeadLetterById(String key) {
+//        return Flux.<DeadLetter>create(emitter -> {
+//                    ReadOnlyKeyValueStore<String, DeadLetter> queryableStoreType = interactiveQueryService.getQueryableStore(dltStore, QueryableStoreTypes.keyValueStore());
+////                    emitter.next(queryableStoreType.get(key));
+//                    queryableStoreType.all().forEachRemaining( k ->
+//                    {
+//                        if(key.equals(k.key)) {
+//                            k.value.setDltKey(k.key);
+//                            emitter.next(k.value);
+//                        }
+//                    });
+//                    emitter.complete();
+//                })
+//                .share();
+//    }
 }

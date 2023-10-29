@@ -75,17 +75,42 @@ public class ServiceAgreementListener {
 
     private static final Random random = new Random();
 
+    @KafkaListener(topics = "#{'${application.configs.topic.serviceAgreementRetry}'}")
+    public void serviceAgreementRetry(ConsumerRecord<String, ServiceAgreementDataV2> event) {
+        serviceAgreementReceived(event);
+
+//        String retryTopicName = getHeader(Kafkautil.DLT_RETRY_TOPIC_NAME, event);
+//        Map<String, String> headers = new HashMap<>();
+//        event.headers().forEach( x -> {
+//            headers.put(x.key(), new String(x.value(), StandardCharsets.UTF_8));
+//        });
+//        kafkaProducerService.produceServiceAgreementV2(event.value(), retryTopicName, headers);
+
+
+        //        String dltTopicKey = getHeader(Kafkautil.DLT_TOPIC_EVENT_KEY, event);
+//        String retryTopicName = getHeader(Kafkautil.DLT_RETRY_TOPIC_NAME, event);
+//        // Execute the retry logic
+//        retryBusinessLogic();
+//        // Tombstoning the event in case
+//        kafkaProducerService.tombstoneEvent(dltTopicKey, retryTopicName);
+//        log.error(String.format("Tombstoing event: %s", dltTopicKey));
+    }
+
     @KafkaListener(topics = "#{'${application.configs.topic.serviceAgreement}'}")
     public void serviceAgreementReceived(ConsumerRecord<String, ServiceAgreementDataV2> event) {
         try {
             String key = event.key();
+            String dltTopicKey = getHeader(Kafkautil.DLT_TOPIC_EVENT_KEY, event);
 //             && Character.isDigit(key.toString().charAt(0))
-            if(simulateError) {
+            if(simulateError && Objects.isNull(dltTopicKey)) {
                 throw new RuntimeException("Key Starts with Digit");
             } else {
                 log.info("[ CONSUMED ] Service Agreement received on topic {}, Partition: {}, Offset: {}, Event: {}", event.topic(), event.partition(), event.offset(), event.value());
-//                String dltTopicKey = getHeader(Kafkautil.DLT_TOPIC_EVENT_KEY, event);
-                kafkaProducerService.tombstoneServiceAgreementV2(event.key(), dltTopic);
+                if(Objects.nonNull(dltTopicKey)) {
+                    kafkaProducerService.tombstoneEvent(dltTopicKey, dltTopic + "_avro");
+//                    kafkaProducerService.tombstoneServiceAgreementV2(dltTopicKey, dltTopic);
+                }
+
 //                CompletableFuture
 //                        .runAsync( () -> kafkaProducerService.tombstoneServiceAgreementV2(event.key(), dltTopic))
 //                        .exceptionally(
@@ -106,9 +131,6 @@ public class ServiceAgreementListener {
             event.headers().add(Kafkautil.DLT_ORIGINAL_PARTITION, String.valueOf(event.partition()).getBytes());
             event.headers().add(Kafkautil.DLT_ORIGINAL_OFFSET, String.valueOf(event.offset()).getBytes());
             event.headers().add(Kafkautil.DLT_REASON, (t.getMessage() + ": \n" + ExceptionUtils.getStackTrace(t)).getBytes());
-
-//            event.headers().add(Kafkautil.DLT_TOPIC_NAME_HEADER, dltTopic.getBytes());
-//            event.headers().add(Kafkautil.DLT_REASON, (t.getMessage() + ": \n" + ExceptionUtils.getStackTrace(t)).getBytes());
             throw t;
         }
     }

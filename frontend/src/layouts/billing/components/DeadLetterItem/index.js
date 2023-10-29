@@ -50,8 +50,6 @@ function DeadLetterItem({ noGutter, asString, dltKey, eventType, service, topic,
     resendCallback(dltKey, topic);
   };
   
-  
-
   return (
     <MDBox
       component="li"
