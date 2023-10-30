@@ -18,6 +18,7 @@ import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.state.KeyValueBytesStoreSupplier;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.Stores;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.kafka.annotation.DltHandler;
@@ -39,23 +40,28 @@ public class NotificationProcessorService {
 
     private final RecordBuilder recordBuilder;
     private final DeadLetterEventHandler deadLetterEventHandler;
+    private final DeadLetterService deadLetterService;
+
+    @Value("${spring.kafka.consumer.properties.schema.registry.url}")
+    private String schemaRegistryUrl;
+
+    @Value("${application.configs.persistence.enabled}")
+    private boolean persistenceEnabled;
 
     @StreamListener("dlt-input-channel")
     @SendTo("dlt-output-channel")
     public KStream<String, DeadLetter> processDlt(KTable<String, DeadLetter> input) {
-        log.info("Dead Letter Received ... ");
-
-//        final KeyValueBytesStoreSupplier storeSupplier = Stores.persistentKeyValueStore(DLT_STORE);
-
+        log.info("Starting DLT Stream ... ");
         SpecificAvroSerde avroSerde = new SpecificAvroSerde<>();
-        Map<String, ?> serdeConfig = Map.of("schema.registry.url", "http://localhost:8081",
+        Map<String, ?> serdeConfig = Map.of(
+                "schema.registry.url", schemaRegistryUrl,
                 "specific.avro.reader", "true");
         avroSerde.configure(serdeConfig, false); // Configure the Serde with necessary settings
         KStream<String, DeadLetter> outgoingStream = input
                 .toStream()
-                .peek( (k,v) -> deadLetterEventHandler.handle(k, v))
-                .peek( (k,v) -> log.info("[ CONSUMED ] [ DEAD_LETTER ] {}: {}", k, v));
-
+                .peek((k,v) -> deadLetterEventHandler.handle(k, v))
+                .peek((k,v) -> { if(persistenceEnabled) deadLetterService.persistDlt(k, v); } )
+                .peek((k,v) -> log.info("[ CONSUMED ] [ DEAD_LETTER ] {}: {}", k, v));
         return outgoingStream;
     }
 

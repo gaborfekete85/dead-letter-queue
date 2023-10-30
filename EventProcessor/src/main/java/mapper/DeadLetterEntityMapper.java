@@ -27,10 +27,11 @@ public class DeadLetterEntityMapper {
                 .build();
     }
 
-    public static <T> DeadLetter mapToAvro(T event, org.apache.avro.Schema schema, Class<T> cls, Map<String, String> params) {
+    public static <T> DeadLetter mapToAvro(T event, org.apache.avro.Schema schema, Class<T> cls, Map<String, String> params, String serviceId) {
         byte[] serializedAvro = Kafkautil.serializeAvro(event, schema);
 
         return DeadLetter.newBuilder()
+                .setServiceId(serviceId)
                 .setEventKey(params.get(Kafkautil.DLT_ORIGINAL_EVENT_KEY))
                 .setEventType(cls.getName())
                 .setTopic(params.get(Kafkautil.DLT_ORIGINAL_TOPIC))

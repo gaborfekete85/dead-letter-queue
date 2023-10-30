@@ -118,9 +118,9 @@ function Dashboard() {
               <MDBox mb={3}>
                 <ReportsBarChart
                   color="info"
-                  title="website views"
-                  description="Last Campaign Performance"
-                  date="campaign sent 2 days ago"
+                  title="Failed Events per days"
+                  description="Calculates all events on a program level"
+                  date=""
                   chart={dataPerDay}
                 />
               </MDBox>
@@ -129,13 +129,13 @@ function Dashboard() {
               <MDBox mb={3}>
                 <ReportsLineChart
                   color="success"
-                  title="daily sales"
+                  title="Failed events per component"
                   description={
                     <>
-                      (<strong>+15%</strong>) increase in today sales.
+                      Number of events per components.
                     </>
                   }
-                  date="updated 4 min ago"
+                  date=""
                   chart={dataPerDay}
                 />
               </MDBox>

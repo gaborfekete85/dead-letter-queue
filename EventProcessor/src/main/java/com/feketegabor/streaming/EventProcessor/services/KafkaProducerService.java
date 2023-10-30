@@ -35,6 +35,9 @@ public class KafkaProducerService {
     @Value("${application.configs.topic.transactionV2}")
     private String TRANSACTION_TOPIC_NAME_V2;
 
+    @Value("${spring.application.name}")
+    private String applicationId;
+
     @Autowired
     private KafkaTemplate<String, ServiceAgreementDataV2> serviceAgreementV2Template;
 
@@ -139,7 +142,7 @@ public class KafkaProducerService {
         params.forEach( (k,v) -> {
             headers.add(new RecordHeader(k, v.getBytes()));
         });
-        DeadLetter deadLetter = DeadLetterEntityMapper.mapToAvro(serviceAgreementDataV2, ServiceAgreementDataV2.SCHEMA$, ServiceAgreementDataV2.class, params);
+        DeadLetter deadLetter = DeadLetterEntityMapper.mapToAvro(serviceAgreementDataV2, ServiceAgreementDataV2.SCHEMA$, ServiceAgreementDataV2.class, params, applicationId);
         this.produceDeadLetter(deadLetter, topic, params);
     }
 

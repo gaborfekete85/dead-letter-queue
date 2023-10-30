@@ -85,7 +85,7 @@ function Projects() {
   const [resendDltKey, setResendDltKey] = React.useState("");
 
   const handleOpen = (dltKey, originalTopic) => {
-    setResendTopic(originalTopic);
+    setResendTopic(originalTopic + "_retry");
     setResendDltKey(dltKey);
     // alert("DltKey: " + dltKey + ", Original Topic: " + originalTopic)
     setOpen(true);
@@ -306,7 +306,7 @@ function Projects() {
             asString={JSON.stringify(item)}
             dltKey={item.dltKey}
             eventType={shortenEventType(item.eventType)}
-            service="PCO"
+            service={item.serviceId}
             topic={item.topic}
             partition={item.partition}
             partitionOffset={item.partitionOffset}

@@ -14,7 +14,7 @@ application:
 
 spring:
   application:
-    name: PCO Service
+    name: PCO
   datasource:
     url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/postgres?currentSchema=public}
     username: ${DATASOURCE_USER:postgres}

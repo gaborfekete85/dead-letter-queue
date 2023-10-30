@@ -78,22 +78,6 @@ public class ServiceAgreementListener {
     @KafkaListener(topics = "#{'${application.configs.topic.serviceAgreementRetry}'}")
     public void serviceAgreementRetry(ConsumerRecord<String, ServiceAgreementDataV2> event) {
         serviceAgreementReceived(event);
-
-//        String retryTopicName = getHeader(Kafkautil.DLT_RETRY_TOPIC_NAME, event);
-//        Map<String, String> headers = new HashMap<>();
-//        event.headers().forEach( x -> {
-//            headers.put(x.key(), new String(x.value(), StandardCharsets.UTF_8));
-//        });
-//        kafkaProducerService.produceServiceAgreementV2(event.value(), retryTopicName, headers);
-
-
-        //        String dltTopicKey = getHeader(Kafkautil.DLT_TOPIC_EVENT_KEY, event);
-//        String retryTopicName = getHeader(Kafkautil.DLT_RETRY_TOPIC_NAME, event);
-//        // Execute the retry logic
-//        retryBusinessLogic();
-//        // Tombstoning the event in case
-//        kafkaProducerService.tombstoneEvent(dltTopicKey, retryTopicName);
-//        log.error(String.format("Tombstoing event: %s", dltTopicKey));
     }
 
     @KafkaListener(topics = "#{'${application.configs.topic.serviceAgreement}'}")
@@ -123,7 +107,6 @@ public class ServiceAgreementListener {
             }
         } catch (Throwable t) {
             log.error("ERR_PCO_2001: [ KAFKA ] Unexpected error during consuming the event.", t);
-            event.headers().add(Kafkautil.DLT_SERVICE_ID, applicationId.getBytes());
             event.headers().add(Kafkautil.DLT_TOPIC_NAME_HEADER, dltTopic.getBytes());
             event.headers().add(Kafkautil.DLT_ORIGINAL_EVENT_KEY, event.key().getBytes());
             event.headers().add(Kafkautil.DLT_ORIGINAL_EVENT_TYPE, event.value().getClass().getName().getBytes());

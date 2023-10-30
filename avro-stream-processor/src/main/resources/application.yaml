@@ -2,12 +2,38 @@ server:
   port: 8756
 application:
   configs:
+    persistence:
+      enabled: false
     topic:
       serviceAgreement: pcmproser_pcoevents_serviceagreement_v2
       serviceAgreementDlt: pcmproser_pcoevents_serviceagreement_v2_dlt
       serviceAgreementRetry: pcmproser_pcoevents_serviceagreement_v2_retry
 
 spring:
+  application:
+    name: DLT
+  datasource:
+    url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/postgres?currentSchema=public}
+    username: ${DATASOURCE_USER:postgres}
+    password: ${DATASOURCE_PASSWORD:postgres}
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+      naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        ddl-auto: none
+        jdbc:
+          lob:
+            non_contextual_creation: true
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    placeholderReplacement: false
+
   kafka:
     producer:
       client-id: service-agreement-generator

@@ -9,7 +9,7 @@
       "default": null
     },
     {
-      "name": "service",
+      "name": "serviceId",
       "type":  [ "null", "string" ],
       "default": null
     },

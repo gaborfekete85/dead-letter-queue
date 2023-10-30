@@ -15,7 +15,6 @@ import java.util.Properties;
 import java.util.UUID;
 
 public class Kafkautil {
-    public static final String DLT_SERVICE_ID = "dltServiceId";
     public static final String DLT_TOPIC_NAME_HEADER = "dltTopicName";
     public static final String DLT_REASON = "REASON";
     public static final String DLT_ORIGINAL_EVENT_KEY = "ORIGINAL_EVENT_KEY";
