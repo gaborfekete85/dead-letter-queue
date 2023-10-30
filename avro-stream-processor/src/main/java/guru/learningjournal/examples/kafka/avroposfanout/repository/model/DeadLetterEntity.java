@@ -15,6 +15,7 @@ import java.util.UUID;
 @Data
 @Builder
 @AllArgsConstructor
+//@Inheritance(strategy=InheritanceType.SINGLE_TABLE)
 public class DeadLetterEntity {
     @Id
     @GeneratedValue(generator = "UUID")
@@ -57,6 +58,9 @@ public class DeadLetterEntity {
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Column(name = "event_priority")
+    private String eventPriority;
 
     public DeadLetterEntity() {
     }

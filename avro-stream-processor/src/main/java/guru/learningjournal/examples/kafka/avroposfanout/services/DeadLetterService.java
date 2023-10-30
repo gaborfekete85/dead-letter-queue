@@ -1,8 +1,10 @@
 package guru.learningjournal.examples.kafka.avroposfanout.services;
 
 import com.feketegabor.streaming.avro.model.DeadLetter;
+import guru.learningjournal.examples.kafka.avroposfanout.repository.DltJdbcRepository;
 import guru.learningjournal.examples.kafka.avroposfanout.repository.DltRepository;
 import guru.learningjournal.examples.kafka.avroposfanout.repository.model.DeadLetterEntity;
+import guru.learningjournal.examples.kafka.avroposfanout.repository.model.DeadLetterStatisticEntity;
 import guru.learningjournal.examples.kafka.avroposfanout.util.Kafkautil;
 import lombok.AllArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -19,6 +22,11 @@ import java.util.UUID;
 public class DeadLetterService {
 
     private final DltRepository deadLetterRepository;
+    private final DltJdbcRepository dltJdbcRepository;
+
+    public List<DeadLetterStatisticEntity> getEventsByServiceId(List<String> serviceIds) {
+        return dltJdbcRepository.getEventCountByService(serviceIds);
+    }
 
     public DeadLetterEntity persistDlt(String key, DeadLetter value) {
         DeadLetterEntity entity = DeadLetterEntity.builder()

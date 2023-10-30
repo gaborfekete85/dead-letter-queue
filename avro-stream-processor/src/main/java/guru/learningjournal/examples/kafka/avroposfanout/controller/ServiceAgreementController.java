@@ -6,6 +6,8 @@ import guru.learningjournal.examples.kafka.avroposfanout.controller.domain.DeadL
 import guru.learningjournal.examples.kafka.avroposfanout.controller.domain.RetryDto;
 import guru.learningjournal.examples.kafka.avroposfanout.controller.domain.MessageDTO;
 import guru.learningjournal.examples.kafka.avroposfanout.controller.domain.ServiceAgreementDTO;
+import guru.learningjournal.examples.kafka.avroposfanout.repository.model.DeadLetterStatisticEntity;
+import guru.learningjournal.examples.kafka.avroposfanout.services.DeadLetterService;
 import guru.learningjournal.examples.kafka.avroposfanout.services.KafkaProducerService;
 import guru.learningjournal.examples.kafka.avroposfanout.services.KafkaStores;
 import guru.learningjournal.examples.kafka.avroposfanout.services.listener.DeadLetterEventHandler;
@@ -34,6 +36,7 @@ public class ServiceAgreementController {
     private final DeadLetterEventHandler deadLetterEventHandler;
     private final MessageEventHandler messageEventHandler;
     private final KafkaProducerService kafkaProducerService;
+    private final DeadLetterService deadLetterService;
 
     @Value("${application.configs.topic.serviceAgreementRetry}")
     private String RETRY_SERVICE_AGRREMENT_TOPIC_NAME;
@@ -54,10 +57,13 @@ public class ServiceAgreementController {
 
     @GetMapping(path = "/dlt", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public ResponseEntity<List<DeadLetterDTO>> getDlt() {
+    public ResponseEntity<List<DeadLetterStatisticEntity>> getDlt(@RequestParam String serviceIds) {
+        List<String> services = List.of(serviceIds.split(","));
+        List<DeadLetterStatisticEntity> deadLetters = deadLetterService.getEventsByServiceId(services);
+
 //        return Flux.fromStream(kafkaStores.getDeadLetters().toStream().map(DeadLetterEventHandler::mapToDto)).log();
 //        return Flux.fromStream(kafkaStores.getDeadLetters()).log();
-        return ResponseEntity.ok(List.of());
+        return ResponseEntity.ok(deadLetters);
     }
 
     @GetMapping(path = "/dlt/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)

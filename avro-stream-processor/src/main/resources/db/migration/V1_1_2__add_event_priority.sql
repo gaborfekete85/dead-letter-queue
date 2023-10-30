@@ -1,0 +1,1 @@
+alter table dead_letter_events add event_priority varchar(30) default 'MAJOR';

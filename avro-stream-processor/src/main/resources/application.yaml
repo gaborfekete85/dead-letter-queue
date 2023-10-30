@@ -3,7 +3,7 @@ server:
 application:
   configs:
     persistence:
-      enabled: false
+      enabled: true
     topic:
       serviceAgreement: pcmproser_pcoevents_serviceagreement_v2
       serviceAgreementDlt: pcmproser_pcoevents_serviceagreement_v2_dlt

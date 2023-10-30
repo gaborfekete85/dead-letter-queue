@@ -36,6 +36,9 @@ import MDInput from "components/MDInput";
 import Breadcrumbs from "examples/Breadcrumbs";
 import NotificationItem from "examples/Items/NotificationItem";
 
+import MultiSelect from "components/MultiSelect/index";
+import DateRangePicker from "components/DateRangePicker/index";
+
 // Custom styles for DashboardNavbar
 import {
   navbar,
@@ -59,6 +62,22 @@ function DashboardNavbar({ absolute, light, isMini }) {
   const { miniSidenav, transparentNavbar, fixedNavbar, openConfigurator, darkMode } = controller;
   const [openMenu, setOpenMenu] = useState(false);
   const route = useLocation().pathname.split("/").slice(1);
+
+  const [componentFilter, setComponentFilter] = useState([]);
+  const handleComponentFilterChange = (event) => {
+    const { target: { value } } = event;
+    setComponentFilter( typeof value === 'string' ? value.split(',') : value );
+  };
+
+  const [priorityFilter, setPriorityFilter] = useState([]);
+  const handlePriorityFilterChange = (event) => {
+    const { target: { value }, } = event;
+    setPriorityFilter(
+      // On autofill we get a stringified value.
+      typeof value === 'string' ? value.split(',') : value,
+    );
+    // alert(JSON.stringify(value === 'string' ? value.split(',') : value))
+  };
 
   useEffect(() => {
     // Setting the navbar type
@@ -135,8 +154,31 @@ function DashboardNavbar({ absolute, light, isMini }) {
         </MDBox>
         {isMini ? null : (
           <MDBox sx={(theme) => navbarRow(theme, { isMini })}>
-            <MDBox pr={1}>
+            {/* <MDBox pr={1}>
               <MDInput label="Search here" />
+            </MDBox> */}
+            <MDBox pr={1}>
+              <DateRangePicker />
+            </MDBox>
+            <MDBox pr={1}>
+              <MultiSelect 
+                caption="Components"
+                width="200"
+                id="component-multi-select"
+                currentValue={componentFilter} 
+                values={[ 'PCO', 'PCD', 'PCM', 'BR-MGMT', 'PCA' ]} 
+                onChange={handleComponentFilterChange}
+              />
+            </MDBox>
+            <MDBox pr={1}>
+              <MultiSelect 
+                caption="Priority"
+                width="400"
+                id="priority-multi-select"
+                currentValue={priorityFilter} 
+                values={[ 'Low', 'Minor', 'Major', 'High', 'Critical' ]} 
+                onChange={handlePriorityFilterChange}
+              />
             </MDBox>
             <MDBox color={light ? "white" : "inherit"}>
               <Link to="/authentication/sign-in/basic">
