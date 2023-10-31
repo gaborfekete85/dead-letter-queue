@@ -10,8 +10,7 @@
     },
     {
       "name": "serviceId",
-      "type":  [ "null", "string" ],
-      "default": null
+      "type":  "string"
     },
     {
       "name": "eventKey",
@@ -48,6 +47,15 @@
     {
       "name": "createdAt",
       "type": "string"
+    },
+    {
+      "name": "priority",
+      "type": {
+        "name": "PriorityEnum",
+        "type": "enum",
+        "symbols": [ "LOW", "MINOR", "MAJOR", "HIGH", "CRITICAL" ]
+      },
+      "default": "MAJOR"
     }
   ]
 }

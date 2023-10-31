@@ -14,14 +14,18 @@ import guru.learningjournal.examples.kafka.avroposfanout.services.listener.DeadL
 import guru.learningjournal.examples.kafka.avroposfanout.services.listener.MessageEventHandler;
 import guru.learningjournal.examples.kafka.avroposfanout.util.Kafkautil;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.compress.utils.Lists;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -57,9 +61,15 @@ public class ServiceAgreementController {
 
     @GetMapping(path = "/dlt", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public ResponseEntity<List<DeadLetterStatisticEntity>> getDlt(@RequestParam String serviceIds) {
-        List<String> services = List.of(serviceIds.split(","));
-        List<DeadLetterStatisticEntity> deadLetters = deadLetterService.getEventsByServiceId(services);
+    public ResponseEntity<List<DeadLetterStatisticEntity>> getDlt(
+            @RequestParam @Nullable String services,
+            @RequestParam @Nullable String priorities,
+            @RequestParam @Nullable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+            @RequestParam @Nullable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to
+            ) {
+        List<String> paramServices = getAsListOrEmpty(services);
+        List<String> paramsPriorities = getAsListOrEmpty(priorities);
+        List<DeadLetterStatisticEntity> deadLetters = deadLetterService.getEventsByServiceId(paramServices, paramsPriorities, from, to);
 
 //        return Flux.fromStream(kafkaStores.getDeadLetters().toStream().map(DeadLetterEventHandler::mapToDto)).log();
 //        return Flux.fromStream(kafkaStores.getDeadLetters()).log();
@@ -78,6 +88,10 @@ public class ServiceAgreementController {
 //        messageEventHandler.handle(messageDTO);
 ////        return ResponseEntity.ok(messageDTO);
 //    }
+
+    private List<String> getAsListOrEmpty(String input) {
+        return Objects.isNull(input) ? List.of() : List.of(input.split(","));
+    }
 
     @GetMapping(path = "/message")
     @ResponseStatus(HttpStatus.ACCEPTED)

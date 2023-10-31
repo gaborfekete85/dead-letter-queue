@@ -23,6 +23,7 @@ public class Kafkautil {
     public static final String DLT_ORIGINAL_PARTITION = "ORIGINAL_PARTITION";
     public static final String DLT_ORIGINAL_OFFSET = "ORIGINAL_OFFSET";
     public static final String DLT_TOPIC_EVENT_KEY = "dltTopicEventKey";
+    public static final String DLT_PRIORITY = "dltPriority";
 
     public static <K, V> KafkaConsumer getConsumer(String autoOffset) {
         Properties kafkaProps = new Properties();

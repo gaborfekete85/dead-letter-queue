@@ -7,15 +7,14 @@ import guru.learningjournal.examples.kafka.avroposfanout.repository.model.DeadLe
 import guru.learningjournal.examples.kafka.avroposfanout.repository.model.DeadLetterStatisticEntity;
 import guru.learningjournal.examples.kafka.avroposfanout.util.Kafkautil;
 import lombok.AllArgsConstructor;
+import org.apache.commons.compress.utils.Lists;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Header;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
@@ -24,8 +23,8 @@ public class DeadLetterService {
     private final DltRepository deadLetterRepository;
     private final DltJdbcRepository dltJdbcRepository;
 
-    public List<DeadLetterStatisticEntity> getEventsByServiceId(List<String> serviceIds) {
-        return dltJdbcRepository.getEventCountByService(serviceIds);
+    public List<DeadLetterStatisticEntity> getEventsByServiceId(List<String> serviceIds, List<String> priorities, LocalDateTime from, LocalDateTime to) {
+        return dltJdbcRepository.getEventCountByService(serviceIds, priorities, from, to);
     }
 
     public DeadLetterEntity persistDlt(String key, DeadLetter value) {
@@ -39,6 +38,7 @@ public class DeadLetterService {
                 .dataAsJson(value.getJson().toString())
                 .dataAsAvro(value.getAvro().toString())
                 .reason(value.getReason().toString())
+                .eventPriority(value.getPriority().name())
                 .build();
 
         return deadLetterRepository.saveAndFlush(entity);

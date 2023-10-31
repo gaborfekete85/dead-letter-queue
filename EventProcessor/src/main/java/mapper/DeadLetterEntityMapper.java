@@ -3,6 +3,7 @@ package mapper;
 import com.feketegabor.streaming.EventProcessor.repository.model.DeadLetterEntity;
 import com.feketegabor.streaming.EventProcessor.util.Kafkautil;
 import com.feketegabor.streaming.avro.model.DeadLetter;
+import com.feketegabor.streaming.avro.model.PriorityEnum;
 import com.feketegabor.streaming.avro.model.ServiceAgreementDataV2;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 
@@ -40,7 +41,14 @@ public class DeadLetterEntityMapper {
                 .setJson(event.toString())
                 .setAvro(Base64.getEncoder().encodeToString(serializedAvro))
                 .setReason(params.get(Kafkautil.DLT_REASON))
+                .setPriority(setPriority(params))
                 .setCreatedAt(LocalDateTime.now().toInstant(ZoneOffset.UTC).toString())
                 .build();
+    }
+
+    private static PriorityEnum setPriority(Map<String, String> params) {
+        return Objects.isNull(params.get(Kafkautil.DLT_PRIORITY)) ?
+                PriorityEnum.MAJOR :
+                PriorityEnum.valueOf(params.get(Kafkautil.DLT_PRIORITY));
     }
 }

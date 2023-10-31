@@ -4,10 +4,7 @@ import com.feketegabor.streaming.EventProcessor.repository.TransactionDltReposit
 import com.feketegabor.streaming.EventProcessor.repository.model.DeadLetterEntity;
 import com.feketegabor.streaming.EventProcessor.services.KafkaProducerService;
 import com.feketegabor.streaming.EventProcessor.util.Kafkautil;
-import com.feketegabor.streaming.avro.model.DeadLetter;
-import com.feketegabor.streaming.avro.model.ServiceAgreementDataV2;
-import com.feketegabor.streaming.avro.model.Transaction;
-import com.feketegabor.streaming.avro.model.TransactionV2;
+import com.feketegabor.streaming.avro.model.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.io.*;
 import org.apache.avro.specific.SpecificDatumReader;
@@ -114,6 +111,7 @@ public class ServiceAgreementListener {
             event.headers().add(Kafkautil.DLT_ORIGINAL_PARTITION, String.valueOf(event.partition()).getBytes());
             event.headers().add(Kafkautil.DLT_ORIGINAL_OFFSET, String.valueOf(event.offset()).getBytes());
             event.headers().add(Kafkautil.DLT_REASON, (t.getMessage() + ": \n" + ExceptionUtils.getStackTrace(t)).getBytes());
+            event.headers().add(Kafkautil.DLT_PRIORITY, PriorityEnum.HIGH.name().getBytes());
             throw t;
         }
     }
@@ -351,7 +349,8 @@ public class ServiceAgreementListener {
                     Kafkautil.DLT_ORIGINAL_TOPIC, randomVersion(event.topic()),
                     Kafkautil.DLT_ORIGINAL_PARTITION, String.valueOf(event.partition()),
                     Kafkautil.DLT_ORIGINAL_OFFSET, String.valueOf(event.offset()),
-                    Kafkautil.DLT_REASON, getDltException(event)
+                    Kafkautil.DLT_REASON, getDltException(event),
+                    Kafkautil.DLT_PRIORITY, getHeader(Kafkautil.DLT_PRIORITY, event)
             );
             if(Objects.isNull(dltTopicTo)) {
                 log.warn("[ ERROR PRODUCE ] Unable to send event to dead letter queue as topic could not be identified. Event: {}", event.key());
