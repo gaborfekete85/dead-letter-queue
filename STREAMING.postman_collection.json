@@ -1,0 +1,265 @@
+{
+	"info": {
+		"_postman_id": "bdbc9865-1879-4c4e-96ec-2dabd9c5f73f",
+		"name": "STREAMING",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "1016670"
+	},
+	"item": [
+		{
+			"name": "Generate",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"numberOfEvents\": 5\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8300/producer/api/kafka/generate",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8300",
+					"path": [
+						"producer",
+						"api",
+						"kafka",
+						"generate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Transaction",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Gabor Fekete2\",\n    \"amount\": 15\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/api/kafka/transaction",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"kafka",
+						"transaction"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Transaction V2",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Gabbenino\",\n    \"amount\": 59\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/api/kafka/transactionV2",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"kafka",
+						"transactionV2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Stream",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/transactions/stream",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"transactions",
+						"stream"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Query SA from Store",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8756/api/sa",
+					"host": [
+						"localhost"
+					],
+					"port": "8756",
+					"path": [
+						"api",
+						"sa"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Query Dead Letters from Store",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8756/api/dlt",
+					"host": [
+						"localhost"
+					],
+					"port": "8756",
+					"path": [
+						"api",
+						"dlt"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get DLT from the topic",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"data = pm.response.json();",
+							"if (data.length > 0) { ",
+							"    pm.collectionVariables.set(\"currentDltKey\", data[0].dltKey);",
+							"    console.log(\"Current Dead letter ID: \" + pm.collectionVariables.get(\"currentDltKey\"));",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8300/dlt/api/dlt",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8300",
+					"path": [
+						"dlt",
+						"api",
+						"dlt"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Tombstone",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"dltTopicEventKey\":\"6d8adaca-32c7-44c7-8de1-049975648466\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8089/api/kafka/tombstone",
+					"host": [
+						"localhost"
+					],
+					"port": "8089",
+					"path": [
+						"api",
+						"kafka",
+						"tombstone"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Service Agreement",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJzZWN1cmUtYXBpIiwiYXVkIjoic2VjdXJlLWFwcCIsInN1YiI6InUxMTExMSIsInJvbCI6WyJHQV9QQ00tUk0tVFNUIl0sInJtTG9jYXRpb24iOiJDSCIsIm1haWwiOiJ1MTExMTFAanVsaXVzYmFlci5jb20iLCJzdXJlTmFtZSI6IkRldmVsIiwiZ2l2ZW5OYW1lIjoiUGFub3MiLCJleHAiOjEwMDAxNjIzMzA1MzQ1fQ.a2tlc9xa-JVU3c68fj9reMC-Kdju94VoY0412_DtfNNCbNQPib3ZMt8FnT0FB9WaZSO1NMS_EtxBezdyMP0YaQ",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8739/api/v1/serviceAgreement?serviceAgreementUid=24df0335-b96d-4321-b7d0-d3ec56fcb20a",
+					"host": [
+						"localhost"
+					],
+					"port": "8739",
+					"path": [
+						"api",
+						"v1",
+						"serviceAgreement"
+					],
+					"query": [
+						{
+							"key": "serviceAgreementUid",
+							"value": "24df0335-b96d-4321-b7d0-d3ec56fcb20a"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "currentDltKey",
+			"value": ""
+		}
+	]
+}
